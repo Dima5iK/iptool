@@ -19,21 +19,21 @@ class IP:
         return self.cidr
     
 class NIC:
-    def __init__(self, index:int, name:str, description:str, ip_addresses:list, 
-                 mac:str, status:bool, speed:int, received_bytes:int, sent_bytes:int):
+    def __init__(self, index:int, name:str, description:str, ip_addresses:list[str], 
+                 mac:str, status:str, speed:int, received_bytes:int, sent_bytes:int):
         self.index:int = index
         self.name:str = name
         self.description = description
-        self.ip_addresses:list = ip_addresses  # Список строк
+        self.ip_addresses:list[str] = ip_addresses  # Список строк
         self.mac:str = mac
-        self.status:bool = status  # "Up"/"Down"
+        self.status:str = status  # "Up"/"Down"
         self.speed:int = int(speed)
         self.received_bytes:int = int(received_bytes)
         self.sent_bytes:int = int(sent_bytes)
 
     def get_ip_cidr(self):
         return self.ip_addresses.get_ip() + '/' + self.ip_addresses.get_cidr()
-
+    
 
 class Route:
     def __init__(self, destination, mask, gateway,  metric):
