@@ -59,28 +59,6 @@ class PowerShellMonitor:
         self.new_data_flag:bool = False         
         """Флаг новых данных"""
 
-
-    def get_IP_obj_from_str(self,ip_str_list:list[str]) ->list[IP] :
-        """Из строки 'ip/mask' получаем ip и mask"""
-        ip_obj:list[IP] = []
-        
-        if isinstance(ip_str_list,str):
-            """если на интерфейсе адресов = 1"""
-            ip,cidr = ip_str_list.split('/')
-            ip_obj.append(IP(ip,cidr))
-
-        elif isinstance(ip_str_list,list):
-            """если на интерфейсе адресов > 1"""
-            for ip_str in ip_str_list:
-                
-                ip,cidr = ip_str.split('/')
-                ip_obj.append(IP(ip,cidr))
-        elif ip_str_list == {}:
-            """если нет адреса"""
-            ip_obj.append(IP(None,None))
-        return ip_obj
-
-
     def _parse_json_to_nics(self, data):
         """реобразует сырой JSON в список объектов NIC
 """
@@ -137,6 +115,7 @@ class PowerShellMonitor:
                 except json.JSONDecodeError:
                     pass
 
+    
 
     def stop(self):
         """Останавливает мониторинг"""
