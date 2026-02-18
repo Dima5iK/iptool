@@ -5,7 +5,7 @@ from model import NetworkState
 class IPtoolGUI:
     def __init__(self, model: NetworkState):
         self.setup_ui()
-        self.model = model
+        self.model: NetworkState = model
 
 
     def setup_ui(self):
@@ -39,7 +39,7 @@ class IPtoolGUI:
                         tag="NIC_listbox",
                         num_items=UI_CONF.item_num,
                         width= UI_CONF.main_width*0.5,
-                        callback=self.show_ip_list()
+                        callback=self.show_detail
                     )
                     dpg.add_listbox(
                         tag="IP_listbox",
@@ -73,9 +73,23 @@ class IPtoolGUI:
 
             with dpg.tab(label="Route",tag=UI_CONF.route_tab_id):
                 pass
-
-    def show_ip_list(self):
+    
+    #callback
+    def show_detail(self, sender, data):
+        """Показывает детали IP, описание и тд"""
+        dev = dpg.get_value("NIC_listbox")
+        print(data)
         pass
+    
+    #обновление содержимого
+    def update_display(self):
+        interfaces = self.model.get_all_inetfaces()
+        if not interfaces:
+            return
+
+        # Обновляем список интерфейсов
+        names = [nic.name for nic in interfaces]
+        dpg.configure_item("NIC_listbox",items=names)
 
     def show(self):
         dpg.show_viewport()

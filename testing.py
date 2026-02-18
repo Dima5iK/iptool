@@ -10,7 +10,7 @@ monitor.start()
 for iter in range(100):
     time.sleep(0.2)
     if monitor.new_data_flag:
-        network_model.update_inetfaces(monitor.new_data)
+        network_model.update_intefaces(monitor.new_data)
         monitor.new_data_flag = False
         
 

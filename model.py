@@ -17,6 +17,20 @@ class NetworkState:
             self.interfaces_previous_state = self.interfaces
             self.interfaces = {nic.index: nic for nic in new_data}
 
+    def get_all_inetfaces(self) -> list[NIC]:
+        """Возвращает список всех интерфейсов """
+        with self._lock:
+            return list(self.interfaces.values())
+        
+    def get_interface_by_index(self, index: int) -> NIC | None:
+        with self._lock:
+            return self.interfaces.get(index)
+
+    def get_previous_interface(self, index: int) -> NIC | None:
+        with self._lock:
+            return self.interfaces_previous_state.get(index)
+        
+        
     def get_rx_speed(self,iface:NIC):
 
         pass
