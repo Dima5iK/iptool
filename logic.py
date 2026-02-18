@@ -60,8 +60,7 @@ class PowerShellMonitor:
         """Флаг новых данных"""
 
     def _parse_json_to_nics(self, data):
-        """реобразует сырой JSON в список объектов NIC
-"""
+        """реобразует сырой JSON в список объектов NIC"""
         nics:list[NIC] = []
         
         for adapter_data in data:

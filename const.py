@@ -1,6 +1,25 @@
 #const.py
 """различные статичные величины и выражения"""
 
+# путь шрифта
+class FONTS:
+    FONT_TAHOMA  ='C:\\Windows\\Fonts\\Tahoma.ttf'
+
+
+#размеры 
+class UI_CONF:
+    version:int = 0
+    main_width = 800
+    main_height = 400
+    
+    #id  вкладок
+    ip_tab_id = 1000
+    route_tab_id = 1001
+    
+    #параметры lisbox в ip_tab_id
+    item_num = 8
+    help_text = ''' Управление: \n Стелки вверх/вниз - перемещение по устройствам или адресам (можно курсором) \n Стрелки влео/вправо - перелючение между колонками 
+ NumPad - ввод адреса\n Enter - задать ip-адрес\n Delete - удалить выбранный адрес\n ПКМ по устройству - переключить на DHCP(статические ip удаяются)\nv{}'''.format(version)
 
 
 #логические константы

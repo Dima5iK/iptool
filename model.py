@@ -11,7 +11,7 @@ class NetworkState:
         self.route:list[Route] = []
         self._lock = threading.RLock()
 
-    def update_inetfaces(self,new_data:list[NIC]):
+    def update_intefaces(self,new_data:list[NIC]):
         """обновляет состояние интерфейсов"""
         with self._lock:
             self.interfaces_previous_state = self.interfaces
