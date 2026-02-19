@@ -36,7 +36,8 @@ class NetworkState:
             for nic in self.interfaces_previous_state.values():
                 if nic.name == name:
                     return nic
-                
+        return None
+    
     def get_ip_list(self,interface_name:str) -> list[str]:
         """Возвращает список ip/mask для указанного интерфейса по его имени"""
 

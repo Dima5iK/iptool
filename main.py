@@ -22,7 +22,10 @@ def main():
             monitor.new_data_flag = False
             if network_model:
                 ui.update_display()
+                
+                
         dpg.render_dearpygui_frame()
+        
         time.sleep(0.02)
     
     ui.clean_up()
