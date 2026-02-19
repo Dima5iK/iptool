@@ -15,6 +15,7 @@ class IPtoolGUI:
         dpg.set_value("info_mac", mac)
 
     def _update_speed(self, speed):
+        """Скорость интерфейса"""
         speed = self._format_speed(speed)
         dpg.set_value("info_speed", speed)
         
