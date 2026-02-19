@@ -8,6 +8,51 @@ class IPtoolGUI:
         self.setup_ui()
         self.model: NetworkState = model
 
+    def _update_description(self, text):
+        dpg.set_value("info_descr", text)
+
+    def _update_mac(self, mac):
+        dpg.set_value("info_mac", mac)
+
+    def _update_speed(self, speed):
+        if speed >= 1_000_000_000:   #Гб/с
+            dpg.set_value("info_speed", f"{speed/1_000_000_000} Гбит/с")
+        elif speed >= 1_000_000:     #Мб/с
+            dpg.set_value("info_speed", f"{speed/1_000_000} Мбит/с")
+        elif speed >= 1_000:     #Кб/с
+            dpg.set_value("info_speed", f"{speed/1_000} Кбит/с")
+        else:
+            dpg.set_value("info_speed", f"{speed} бит/с")
+        
+
+    def _update_rx(self, bytes_val, prev_bytes_val):
+        last_sec_speed = bytes_val - prev_bytes_val
+        if last_sec_speed >= 1_000_000_000:   #Гб/с
+            dpg.set_value("info_rx", f"{last_sec_speed/1_000_000_000} Гбит/с")
+        elif last_sec_speed >= 1_000_000:     #Мб/с
+            dpg.set_value("info_rx", f"{last_sec_speed/1_000_000} Мбит/с")
+        elif last_sec_speed >= 1_000:     #Кб/с
+            dpg.set_value("info_rx", f"{last_sec_speed/1_000} Кбит/с")
+        else:
+            dpg.set_value("info_rx", f"{last_sec_speed} бит/с")
+        
+
+    def _update_tx(self, bytes_val, prev_bytes_val):
+
+        last_sec_speed = bytes_val - prev_bytes_val
+        if last_sec_speed >= 1_000_000_000:   #Гб/с
+            dpg.set_value("info_tx", f"{last_sec_speed/1_000_000_000} Гбит/с")
+        elif last_sec_speed >= 1_000_000:     #Мб/с
+            dpg.set_value("info_tx", f"{last_sec_speed/1_000_000} Мбит/с")
+        elif last_sec_speed >= 1_000:     #Кб/с
+            dpg.set_value("info_tx", f"{last_sec_speed/1_000} Кбит/с")
+        else:
+            dpg.set_value("info_tx", f"{last_sec_speed} бит/с")
+
+    def _update_ip_list(self, ip_list:list):
+        ip_list = ip_list + ["+"]
+        dpg.configure_item("IP_listbox",items=ip_list)
+
 
     def setup_ui(self):
         """Инициализация DPG, шрифтов и контекста"""
@@ -79,10 +124,29 @@ class IPtoolGUI:
     #callback
     def show_detail(self, sender, app_data, user_data):
         """Показывает детали IP, описание и тд"""
-        #убираем "▲ "
-        app_data = app_data[2:]
+        # app_data — выбранная строка с префиксом (например, "▲ Ethernet")
+        clean_name = app_data[2:]  # убираем первые два символа (стрелка и пробел)
+        
+        nic = self.model.get_interface_by_name(clean_name)
+        nic_prev_state = self.model.get_interface_prev_state_by_name(clean_name)
+        if not nic:
+            return
+
+        # Обновляем текстовые поля
+        self._update_ip_list(nic.ip_addresses)
+        self._update_description(nic.description)
+        self._update_mac(nic.mac)
+        self._update_speed(nic.speed)
+        #Если мы не имеем информации о предыдущем состоянии (в момент первого опроса системы) то 
+        # prev_state = текущее состояние. То есть скорость равно нулю
+        if nic_prev_state == None:
+            nic_prev_state = nic
+        self._update_rx(nic.received_bytes, nic_prev_state.received_bytes)
+        self._update_tx(nic.sent_bytes, nic_prev_state.sent_bytes)
+        
+
         #print(type(self.model.get_ip_list(app_data)), self.model.get_ip_list(app_data))
-        dpg.configure_item("IP_listbox",items = self.model.get_ip_list(app_data))
+        #dpg.configure_item("IP_listbox",items = self.model.get_ip_list(app_data))
         
     
     #обновление содержимого
@@ -93,9 +157,9 @@ class IPtoolGUI:
 
         # Обновляем список интерфейсов
         display_names = []
-        user_data_indexes = []
+        
         for nic in interfaces:
-            display_names.append(f" ▲ {nic.name}" if nic.status == "Up" else f" ▼ {nic.name}")
+            display_names.append(f"▲ {nic.name}" if nic.status == "Up" else f"▼ {nic.name}")
         names = [nic.name for nic in interfaces]
         dpg.configure_item("NIC_listbox",items=display_names)
         dpg.set_item_user_data("NIC_listbox",names)

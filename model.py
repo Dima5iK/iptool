@@ -22,15 +22,21 @@ class NetworkState:
         with self._lock:
             return list(self.interfaces.values())
         
-    def get_interface_by_index(self, index: int) -> NIC | None:
+    def get_interface_by_name(self, name: str) -> NIC | None:
+        """Возвращает интерфейс по указанному имени"""
         with self._lock:
-            return self.interfaces.get(index)
-
-    def get_previous_interface(self, index: int) -> NIC | None:
-        with self._lock:
-            return self.interfaces_previous_state.get(index)
-        
+            for nic in self.interfaces.values():
+                if nic.name == name:
+                    return nic
+        return None
     
+    def get_interface_prev_state_by_name(self,name:str) -> NIC | None:
+        """Возвращает предыдущее состояние интерфейса по имени"""
+        with self._lock:
+            for nic in self.interfaces_previous_state.values():
+                if nic.name == name:
+                    return nic
+                
     def get_ip_list(self,interface_name:str) -> list[str]:
         """Возвращает список ip/mask для указанного интерфейса по его имени"""
 
@@ -39,7 +45,9 @@ class NetworkState:
                 if nic.name == interface_name:
                     return nic.ip_addresses
         return []
-
+    
+    def get_descr(self,interface_name:str) -> str:
+        """Возвращает описание интерфейса по"""
 
     def get_rx_speed(self,iface:NIC):
 
