@@ -93,7 +93,7 @@ class PowerShellMonitor:
         """Запускает PowerShell с заданным скриптом"""
         self.running = True
         self.proc = subprocess.Popen(
-            ['powershell', '-Command', POWERSHELL_SCAN],
+            ['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', POWERSHELL_SCAN],
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
