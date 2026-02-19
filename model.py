@@ -30,7 +30,17 @@ class NetworkState:
         with self._lock:
             return self.interfaces_previous_state.get(index)
         
-        
+    
+    def get_ip_list(self,interface_name:str) -> list[str]:
+        """Возвращает список ip/mask для указанного интерфейса по его имени"""
+
+        with self._lock:
+            for nic in self.interfaces.values():
+                if nic.name == interface_name:
+                    return nic.ip_addresses
+        return []
+
+
     def get_rx_speed(self,iface:NIC):
 
         pass

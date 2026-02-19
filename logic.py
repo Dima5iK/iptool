@@ -64,13 +64,21 @@ class PowerShellMonitor:
         nics:list[NIC] = []
         
         for adapter_data in data:
-            
+            raw_ips = adapter_data.get('IPAddress', [])
+            if isinstance(raw_ips, dict) and not raw_ips:
+                ip_addresses = []
+            elif isinstance(raw_ips, str):
+                ip_addresses = [raw_ips] if raw_ips else []
+            elif isinstance(raw_ips, list):
+                ip_addresses = raw_ips
+            else:
+                ip_addresses = []
             nic = NIC(
                 index=adapter_data.get('Index'),
                 name=adapter_data.get('Name'),
                 description=adapter_data.get('Descrip'),
                 #ip_addresses=self.get_IP_obj_from_str(adapter_data.get('IPAddress', [])), слишком сложно
-                ip_addresses=adapter_data.get('IPAddress', []),
+                ip_addresses=ip_addresses,
                 mac=adapter_data.get('MacAddress'),
                 status=adapter_data.get('Status'),
                 speed=str(adapter_data.get('Speed', '0')),

@@ -3,6 +3,7 @@ import dearpygui.dearpygui as dpg
 from const import FONTS, UI_CONF
 from model import NetworkState
 class IPtoolGUI:
+
     def __init__(self, model: NetworkState):
         self.setup_ui()
         self.model: NetworkState = model
@@ -14,6 +15,7 @@ class IPtoolGUI:
         with dpg.font_registry():
             with dpg.font(FONTS.FONT_TAHOMA, 20, default_font=True, id="Default font"):
                 dpg.add_font_range_hint(dpg.mvFontRangeHint_Cyrillic)
+                dpg.add_font_chars([0x25b2, 0x25bc, 0x00d7 ],parent="default")
             self.bigger_font = dpg.add_font(FONTS.FONT_TAHOMA, 26)
             self.smaller_font = dpg.add_font(FONTS.FONT_TAHOMA, 14)
             dpg.add_font_range_hint(dpg.mvFontRangeHint_Cyrillic, parent=self.bigger_font)
@@ -75,11 +77,13 @@ class IPtoolGUI:
                 pass
     
     #callback
-    def show_detail(self, sender, data):
+    def show_detail(self, sender, app_data, user_data):
         """Показывает детали IP, описание и тд"""
-        dev = dpg.get_value("NIC_listbox")
-        print(data)
-        pass
+        #убираем "▲ "
+        app_data = app_data[2:]
+        #print(type(self.model.get_ip_list(app_data)), self.model.get_ip_list(app_data))
+        dpg.configure_item("IP_listbox",items = self.model.get_ip_list(app_data))
+        
     
     #обновление содержимого
     def update_display(self):
@@ -88,8 +92,14 @@ class IPtoolGUI:
             return
 
         # Обновляем список интерфейсов
+        display_names = []
+        user_data_indexes = []
+        for nic in interfaces:
+            display_names.append(f" ▲ {nic.name}" if nic.status == "Up" else f" ▼ {nic.name}")
         names = [nic.name for nic in interfaces]
-        dpg.configure_item("NIC_listbox",items=names)
+        dpg.configure_item("NIC_listbox",items=display_names)
+        dpg.set_item_user_data("NIC_listbox",names)
+
 
     def show(self):
         dpg.show_viewport()
