@@ -3,50 +3,8 @@
 
 from const import POWERSHELL_SCAN
 import subprocess, threading,json
+from model import NetworkState, NIC
 
-
-
-class IP:
-    """Слишком сложно, не используется"""
-    def __init__(self, ip:str, cidr:str):
-        self.ip:str = ip
-        self.cidr:str = str(cidr)
-    
-    def get_ip(self) -> str:
-        return self.ip
-    
-    def get_cidr(self) -> str:
-        return self.cidr
-    
-class NIC:
-    def __init__(self, index:int, name:str, description:str, ip_addresses:list[str], 
-                 mac:str, status:str, speed:int, received_bytes:int, sent_bytes:int):
-        self.index:int = index
-        self.name:str = name
-        self.description = description
-        self.ip_addresses:list[str] = ip_addresses  # Список строк
-        self.mac:str = mac
-        self.status:str = status  # "Up"/"Down"
-        self.speed:int = int(speed)
-        self.received_bytes:int = int(received_bytes)
-        self.sent_bytes:int = int(sent_bytes)
-
-    def get_ip_cidr(self):
-        return self.ip_addresses.get_ip() + '/' + self.ip_addresses.get_cidr()
-    
-
-class Route:
-    def __init__(self, destination, mask, gateway,  metric):
-        self.destination:str = destination
-        self.mask:str = mask                # "255.255.255.0" или CIDR 24
-        self.gateway:str = gateway          # "192.168.1.1" или "On-link"
-        self.metric:str = metric
-
-
-
-    def get_route(self) -> str:
-        """возвращает полную строку destination, mask, gateway,  metric"""
-        return (self.destination + self.mask + self.gateway + self.metric)
 
 
 class PowerShellMonitor:
@@ -130,4 +88,60 @@ class PowerShellMonitor:
         if self.proc:
             self.proc.terminate()
 
+class NetworkController:
+    """Здесь описаны команды управления"""
+    def cmd_execute(self,cmd):
+        """Тсполнение команды в субпроцессе"""
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        subprocess.run(cmd, shell=True, startupinfo=startupinfo, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    
+    def verify_ip(self,ip_cidr:str) -> bool:
+        """проверка корректности адреса"""
+        try:
+            if '/' not in ip_cidr:
+                return False
+            ip,cidr = ip_cidr.split('/')
+            try:
+                int_cidr = int(cidr)
+                if int_cidr < 0 or int_cidr > 32:
+                    return False
+            except ValueError:
+                return False
+            
+            ABCD = ip.split('.')
+            if( len (ABCD) != 4):
+                return False
+            for octet in ABCD:
+                if not octet:
+                    return False
+                int_octet = int(octet)
+                if int_octet < 0 or int_octet > 255:
+                    return False
+            return True
 
+        except(ValueError,AttributeError):
+            return False
+    
+    def cidr_to_mask(self,cidr:str):
+        """Преобразуем бинарную маску в формат 255.255.255.0"""
+        
+        mask_bin = (0xFFFFFFFF << (32 - int(cidr))) & 0xFFFFFFFF
+        # Преобразуем бинарную маску в формат 255.255.255.0
+        return ".".join([str((mask_bin >> (24 - i * 8)) & 0xFF) for i in range(4)])
+
+    def add_ip(self,model:NetworkState,interface:str,ip_cidr:str):
+        if self.verify_ip(ip_cidr):
+            ip,cidr = ip_cidr.split('/')
+            mask = self.cidr_to_mask(cidr)
+            cmd = ('netsh interface ipv4 add address "{}" {} {}'.format(interface,ip,mask))
+            self.cmd_execute(cmd)
+
+    def del_ip(self, model:NetworkState,interface:str,ip_cidr:str):
+        ip,cidr = ip_cidr.split('/')
+        cmd = ('netsh interface ipv4 del address "{}" {}'.format(interface,ip))
+        self.cmd_execute(cmd)
+    
+    def set_dhcp(self,model:NetworkState,interface:str):
+        cmd = ('netsh interface ip set address "{}" dhcp'.format(interface))
+        self.cmd_execute(cmd)

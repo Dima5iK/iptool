@@ -5,9 +5,53 @@ from model import NetworkState
 class IPtoolGUI:
 
     def __init__(self, model: NetworkState):
-        self.setup_ui()
+        
+        self.focused = "NIC_listbox"
+        """Переменная которая хранит название элемента который сейчас обрабатывается"""
         self.model: NetworkState = model
+        self.setup_ui()
+        
 
+    
+    def register_key_handler(self):
+        with dpg.handler_registry():
+            dpg.add_key_press_handler(callback=self.key_press_callback)
+
+    #логика клавиш управления
+
+    def _vertical_move_selection(self,direction:int):
+        """+1 - сдвиг вниз, -1 - свдиг вверх"""
+
+        user_date:list = dpg.get_item_user_data(self.focused)
+        current_pos = dpg.get_value(self.focused)
+        if not current_pos:
+            next_pos = user_date[0]     #если текущего положения нет (ничего не выбрано) - то выбираем первый элемент
+        else:
+            try:
+                print(type(user_date),user_date)
+                idx = user_date.index(current_pos)
+            except ValueError:
+                next_pos = user_date[0]
+            else:
+                next_pos = user_date[(idx + direction) % len(user_date)]
+        dpg.set_value(self.focused,next_pos)
+        if self.focused == "NIC_listbox":
+            self._update_details_for_interface(next_pos[2:])    #убираем два первых символа и передаем как название элемента чтобы показать детали
+
+    def _horizontal_move_selection(self,direction:int):
+        """+1 - вправо, -1 - влево"""
+        if self.focused == "NIC_listbox":
+            if direction == 1:
+                self.focused = "IP_listbox"
+            elif direction == -1:
+                return None         #Возможно можно что то добавить сюда в будущем
+        elif self.focused == "IP_listbox":
+            if direction == -1:
+                self.focused = "NIC_listbox"
+            elif direction == 1:
+                return None         #Сюда тоже
+        
+        
     def _update_description(self, text):
         dpg.set_value("info_descr", text)
 
@@ -18,7 +62,7 @@ class IPtoolGUI:
         """Скорость интерфейса"""
         speed = self._format_speed(speed)
         dpg.set_value("info_speed", speed)
-        
+    
     def _format_speed(self, bps):
         """Форматирование скорости в Гб/с, Мб/с или Кб/с"""
         if bps >= 1_000_000_000:
@@ -35,7 +79,6 @@ class IPtoolGUI:
         last_sec_speed = self._format_speed(last_sec_speed)
         dpg.set_value("info_rx", last_sec_speed)
         
-
     def _update_tx(self, bytes_val, prev_bytes_val):
 
         last_sec_speed = bytes_val - prev_bytes_val
@@ -45,6 +88,7 @@ class IPtoolGUI:
     def _update_ip_list(self, ip_list:list):
         ip_list = ip_list + ["+"]
         dpg.configure_item("IP_listbox",items=ip_list)
+        dpg.set_item_user_data("IP_listbox",ip_list)
 
     def _update_details_for_interface(self, interface_name):
         """Обновляет детали для указанного имени интерфейса (без префикса)"""
@@ -80,7 +124,7 @@ class IPtoolGUI:
 
         with dpg.window(label="",tag="main_window",width=UI_CONF.main_width,height=UI_CONF.main_height):
             self.draw_content()
-        
+        self.register_key_handler()
         dpg.create_viewport(title="IPtool",height=UI_CONF.main_height,width=UI_CONF.main_width)
         dpg.setup_dearpygui()
         dpg.set_primary_window("main_window",True)
@@ -144,6 +188,23 @@ class IPtoolGUI:
 
         #print(type(self.model.get_ip_list(app_data)), self.model.get_ip_list(app_data))
         #dpg.configure_item("IP_listbox",items = self.model.get_ip_list(app_data))
+    
+    def key_press_callback(self,sendef,key):
+        """Обработка всех доступных нажатий с вызовом соответсвующих методов"""
+        if key == dpg.mvKey_Up:
+            self._vertical_move_selection(-1)
+        elif key == dpg.mvKey_Left:
+            self._horizontal_move_selection(-1)
+            print(self.focused)
+        elif key == dpg.mvKey_Right:
+            self._horizontal_move_selection(1)
+            print(self.focused)
+        elif key == dpg.mvKey_Down:
+            self._vertical_move_selection(1)
+        elif key == dpg.mvKey_Delete:
+            pass
+        elif key == dpg.mvKey_Back and (1000 == dpg.get_value('main_tab_bar')):
+            pass
         
     
     #обновление содержимого
@@ -157,10 +218,11 @@ class IPtoolGUI:
         
         for nic in interfaces:
             display_names.append(f"▲ {nic.name}" if nic.status == "Up" else (f"▼ {nic.name}" if nic.status == "Disconnected" else f"  {nic.name}"))
-        names = [nic.name for nic in interfaces]
+        #names = [nic.name for nic in interfaces]
         dpg.configure_item("NIC_listbox",items=display_names)
-        dpg.set_item_user_data("NIC_listbox",names)
+        dpg.set_item_user_data("NIC_listbox",display_names)
 
+        # Обновляем детали для выбранного (если есть)
         selected_display = dpg.get_value("NIC_listbox")
         if selected_display and isinstance(selected_display, str):
             clean_name = selected_display[2:] if len(selected_display) > 2 else selected_display

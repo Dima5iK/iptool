@@ -1,8 +1,51 @@
 #model.py
 """Модель данных"""
 
-from logic import NIC,Route
 import threading
+
+class IP:
+    """Слишком сложно, не используется"""
+    def __init__(self, ip:str, cidr:str):
+        self.ip:str = ip
+        self.cidr:str = str(cidr)
+    
+    def get_ip(self) -> str:
+        return self.ip
+    
+    def get_cidr(self) -> str:
+        return self.cidr
+    
+class NIC:
+    def __init__(self, index:int, name:str, description:str, ip_addresses:list[str], 
+                 mac:str, status:str, speed:int, received_bytes:int, sent_bytes:int):
+        self.index:int = index
+        self.name:str = name
+        self.description = description
+        self.ip_addresses:list[str] = ip_addresses  # Список строк
+        self.mac:str = mac
+        self.status:str = status  # "Up"/"Down"
+        self.speed:int = int(speed)
+        self.received_bytes:int = int(received_bytes)
+        self.sent_bytes:int = int(sent_bytes)
+
+    def get_ip_cidr(self):
+        return self.ip_addresses.get_ip() + '/' + self.ip_addresses.get_cidr()
+    
+
+class Route:
+    def __init__(self, destination, mask, gateway,  metric):
+        self.destination:str = destination
+        self.mask:str = mask                # "255.255.255.0" или CIDR 24
+        self.gateway:str = gateway          # "192.168.1.1" или "On-link"
+        self.metric:str = metric
+
+
+
+    def get_route(self) -> str:
+        """возвращает полную строку destination, mask, gateway,  metric"""
+        return (self.destination + self.mask + self.gateway + self.metric)
+
+
 class NetworkState:
     """Модель сетей"""
     def __init__(self):

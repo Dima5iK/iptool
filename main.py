@@ -1,5 +1,5 @@
 #main.py
-import logic
+from logic import PowerShellMonitor, NetworkController
 import model
 import gui
 import dearpygui.dearpygui as dpg
@@ -7,8 +7,9 @@ import time
 
 
 def main():
-    monitor = logic.PowerShellMonitor()
+    monitor = PowerShellMonitor()
     network_model = model.NetworkState()
+    controller = NetworkController()
     
     monitor.start()
     ui = gui.IPtoolGUI(network_model)
