@@ -87,7 +87,7 @@ class IPtoolGUI:
 
     def _update_ip_list(self, ip_list:list):
         ip_list = ip_list + ["+"]
-        dpg.configure_item("IP_listbox",items=ip_list)
+        dpg.configure_item("N",items=ip_list)
         dpg.set_item_user_data("IP_listbox",ip_list)
 
     def _update_details_for_interface(self, interface_name):
