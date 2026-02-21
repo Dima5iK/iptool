@@ -3,7 +3,7 @@
 
 from const import POWERSHELL_SCAN
 import subprocess, threading,json
-from model import NetworkState, NIC
+from model import NIC
 
 
 
@@ -151,3 +151,15 @@ class NetworkController:
     def set_dhcp(self,interface:str):
         cmd = ('netsh interface ip set address "{}" dhcp'.format(interface))
         self.cmd_execute(cmd)
+<<<<<<< HEAD
+=======
+        #print(cmd)
+
+    def enable_interface(self,interface_name:str):
+        cmd = ('netsh interface set interface "{}" admin=enable'.format(interface_name))
+        self.cmd_execute(cmd)
+
+    def disable_interface(self,interface_name:str):
+        cmd = ('netsh interface set interface "{}" admin=disable'.format(interface_name))
+        self.cmd_execute(cmd)
+>>>>>>> dev

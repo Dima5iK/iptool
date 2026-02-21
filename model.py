@@ -23,7 +23,7 @@ class NIC:
         self.description = description
         self.ip_addresses:list[str] = ip_addresses  # Список строк
         self.mac:str = mac
-        self.status:str = status  # "Up"/"Down"
+        self.status:str = status  # "Up"/"Down/Disable"
         self.speed:int = int(speed)
         self.received_bytes:int = int(received_bytes)
         self.sent_bytes:int = int(sent_bytes)
@@ -58,7 +58,7 @@ class NetworkState:
         """обновляет состояние интерфейсов"""
         with self._lock:
             self.interfaces_previous_state = self.interfaces
-            self.interfaces = {nic.index: nic for nic in new_data}
+            self.interfaces = {nic.name: nic for nic in new_data}
 
     def get_all_inetfaces(self) -> list[NIC]:
         """Возвращает список всех интерфейсов """
@@ -68,11 +68,9 @@ class NetworkState:
     def get_interface_by_name(self, name: str) -> NIC | None:
         """Возвращает интерфейс по указанному имени"""
         with self._lock:
-            for nic in self.interfaces.values():
-                if nic.name == name:
-                    return nic
+            return self.interfaces.get(name)
         return None
-    
+
     def get_interface_prev_state_by_name(self,name:str) -> NIC | None:
         """Возвращает предыдущее состояние интерфейса по имени"""
         with self._lock:

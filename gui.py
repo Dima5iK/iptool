@@ -15,6 +15,10 @@ class IPtoolGUI:
         self.model: NetworkState = model
         self.control:NetworkController = control
         self.setup_ui()
+
+        #переменная для оторажения кнопок включения/отключения интерфейсов
+        self.enable_option:str
+
         
 
     
@@ -106,6 +110,17 @@ class IPtoolGUI:
             if len(ip_list) > 1:
                 dpg.set_value("IP_listbox",ip_list[len(ip_list)-1])
 
+    def _set_dhcp(self):
+        intterface_name = dpg.get_value("NIC_listbox")[2:]
+        self.control.set_dhcp(intterface_name)
+    
+    def _disable_enable_NIC(self):
+        """1 - включить, 0 - Выключить интерфейс"""
+        intterface_name = dpg.get_value("NIC_listbox")[2:]
+        if self.enable_option == "Disabled":
+            self.control.enable_interface(intterface_name)
+        else:
+            self.control.disable_interface(intterface_name)
 
     def _update_description(self, text):
         dpg.set_value("info_descr", text)
@@ -115,11 +130,12 @@ class IPtoolGUI:
 
     def _update_speed(self, speed):
         """Скорость интерфейса"""
-        speed = self._format_speed(speed)
+        speed = self._format_speed(speed,1)
         dpg.set_value("info_speed", speed)
     
-    def _format_speed(self, bps):
+    def _format_speed(self, bps:int,multiplier:int):
         """Форматирование скорости в Гб/с, Мб/с или Кб/с"""
+        bps = bps*multiplier        # Скорость интерфейса с x1, скорость прередачи данных x8
         if bps >= 1_000_000_000:
             return f"{bps/1_000_000_000:.2f} Гбит/с"
         elif bps >= 1_000_000:
@@ -131,13 +147,13 @@ class IPtoolGUI:
         
     def _update_rx(self, bytes_val, prev_bytes_val):
         last_sec_speed = bytes_val - prev_bytes_val
-        last_sec_speed = self._format_speed(last_sec_speed)
+        last_sec_speed = self._format_speed(last_sec_speed,8)
         dpg.set_value("info_rx", last_sec_speed)
         
     def _update_tx(self, bytes_val, prev_bytes_val):
-
         last_sec_speed = bytes_val - prev_bytes_val
-        last_sec_speed = self._format_speed(last_sec_speed)
+        last_sec_speed = self._format_speed(last_sec_speed,8)
+        
         dpg.set_value("info_tx", last_sec_speed)
 
     def _update_ip_list(self, ip_list:list):
@@ -178,6 +194,7 @@ class IPtoolGUI:
                 
         return Act_theme
 
+<<<<<<< HEAD
     #затенение
     def _set_inactive(self):
         """затенение"""
@@ -197,6 +214,17 @@ class IPtoolGUI:
         else:
             dpg.bind_item_theme("NIC_listbox", self.unfocused_theme)
             dpg.bind_item_theme("IP_listbox", self.focused_theme)
+=======
+        self.enable_option = self.model.get_interface_by_name(dpg.get_value("NIC_listbox")[2:]).status
+        if self.enable_option == "Disabled":
+            dpg.configure_item("popup_enable",show= True)
+            dpg.configure_item("popup_disable",show=False)
+        else:
+            dpg.configure_item("popup_enable",show= False)
+            dpg.configure_item("popup_disable",show= True)
+
+
+>>>>>>> dev
 
     def setup_ui(self):
         """Инициализация DPG, шрифтов и контекста"""
@@ -244,6 +272,11 @@ class IPtoolGUI:
                         width= UI_CONF.main_width*UI_CONF.listbox_width[0],
                         callback=self.show_detail
                     )
+                    with dpg.popup(dpg.last_item(),tag="interface_popup",min_size=[50,40]):
+                        dpg.add_menu_item(label="DHCP", callback=self._set_dhcp,tag="popup_dhcp")
+                        dpg.add_menu_item(label="Включить",callback=self._disable_enable_NIC,tag="popup_enable",show=False)
+                        dpg.add_menu_item(label="Отключить",callback=self._disable_enable_NIC,tag="popup_disable",show=False)
+                        
                     dpg.add_listbox(
                         tag="IP_listbox",
                         num_items=UI_CONF.item_num,
@@ -252,12 +285,18 @@ class IPtoolGUI:
                 #загрушка для верстки
                 plug1 = dpg.add_text(default_value="",tag="plug1")
                 dpg.bind_item_font(plug1,self.smaller_font)
+                
                 #описание/мак
                 with dpg.group(horizontal=True):
+<<<<<<< HEAD
                     dpg.add_input_text(tag="info_descr",default_value="описание",readonly=True,width=UI_CONF.main_width*UI_CONF.info_descr_width)
                     dpg.add_input_text(tag="info_mac",default_value="MAC",readonly=True,width=UI_CONF.main_width*UI_CONF.info_mac_width)
+=======
+                    dpg.add_input_text(tag="info_descr",default_value="описание",readonly=True,width=UI_CONF.main_width*0.60)
+                    dpg.add_input_text(tag="info_mac",default_value="MAC",readonly=True,width=UI_CONF.main_width*0.33)
+                
+>>>>>>> dev
                 #скорость/передано/получено
-
                 with dpg.group(horizontal=True):
                     dpg.add_input_text(tag="info_speed",readonly=True, default_value="скорость",width=UI_CONF.main_width*UI_CONF.info_speed_width)
                     dpg.add_input_text(tag="info_rx",readonly=True, default_value="RX",width=UI_CONF.main_width*UI_CONF.info_rx_width)
@@ -368,6 +407,7 @@ class IPtoolGUI:
         #names = [nic.name for nic in interfaces]
         dpg.configure_item("NIC_listbox",items=display_names)
         dpg.set_item_user_data("NIC_listbox",display_names)
+        
 
         # Обновляем детали для выбранного (если есть)
         selected_display = dpg.get_value("NIC_listbox")
