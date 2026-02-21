@@ -109,10 +109,10 @@ class NetworkController:
             except ValueError:
                 return False
             
-            ABCD = ip.split('.')
-            if( len (ABCD) != 4):
+            ancd = ip.split('.')
+            if( len (ancd) != 4):
                 return False
-            for octet in ABCD:
+            for octet in ancd:
                 if not octet:
                     return False
                 int_octet = int(octet)
@@ -130,18 +130,21 @@ class NetworkController:
         # Преобразуем бинарную маску в формат 255.255.255.0
         return ".".join([str((mask_bin >> (24 - i * 8)) & 0xFF) for i in range(4)])
 
-    def add_ip(self,model:NetworkState,interface:str,ip_cidr:str):
+    def add_ip(self,interface:str,ip_cidr:str):
         if self.verify_ip(ip_cidr):
             ip,cidr = ip_cidr.split('/')
             mask = self.cidr_to_mask(cidr)
             cmd = ('netsh interface ipv4 add address "{}" {} {}'.format(interface,ip,mask))
-            self.cmd_execute(cmd)
+            #self.cmd_execute(cmd)
+            print(cmd)
 
-    def del_ip(self, model:NetworkState,interface:str,ip_cidr:str):
+    def del_ip(self,interface:str,ip_cidr:str):
         ip,cidr = ip_cidr.split('/')
         cmd = ('netsh interface ipv4 del address "{}" {}'.format(interface,ip))
-        self.cmd_execute(cmd)
+        #self.cmd_execute(cmd)
+        print(cmd)
     
-    def set_dhcp(self,model:NetworkState,interface:str):
+    def set_dhcp(self,interface:str):
         cmd = ('netsh interface ip set address "{}" dhcp'.format(interface))
-        self.cmd_execute(cmd)
+        #self.cmd_execute(cmd)
+        print(cmd)

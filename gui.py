@@ -2,13 +2,15 @@
 import dearpygui.dearpygui as dpg
 from const import FONTS, UI_CONF
 from model import NetworkState
+from logic import NetworkController
 class IPtoolGUI:
 
-    def __init__(self, model: NetworkState):
+    def __init__(self, model: NetworkState, control:NetworkController):
         
         self.focused = "NIC_listbox"
         """Переменная которая хранит название элемента который сейчас обрабатывается"""
         self.model: NetworkState = model
+        self.control:NetworkController = control
         self.setup_ui()
         
 
@@ -28,7 +30,7 @@ class IPtoolGUI:
             next_pos = user_date[0]     #если текущего положения нет (ничего не выбрано) - то выбираем первый элемент
         else:
             try:
-                print(type(user_date),user_date)
+                #print(type(user_date),user_date)
                 idx = user_date.index(current_pos)
             except ValueError:
                 next_pos = user_date[0]
@@ -50,8 +52,39 @@ class IPtoolGUI:
                 self.focused = "NIC_listbox"
             elif direction == 1:
                 return None         #Сюда тоже
-        
-        
+    
+    def _is_iplist_changed(self) -> bool:
+        """Если для выбранного интерфейса ip адреса поменялись """
+        interface = dpg.get_value("NIC_listbox")
+        model_ip_list = self.model.get_ip_list(interface[2:])
+        ui_ip_list = dpg.get_item_user_data("IP_listbox")
+
+        if model_ip_list == (ui_ip_list[:-1]):
+            return False
+        else:
+            return True
+
+    def _write_symb(self,symb:str):
+        """Вводим адрес в формате A.B.C.D/M вместо +"""
+        ip_list = dpg.get_item_user_data("IP_listbox")
+        if not ip_list == None:
+            if dpg.get_value("IP_listbox") == ip_list[len(ip_list)-1] and self.focused == "IP_listbox":        #проверка что мы не выбрали валидный IP
+                if ip_list[len(ip_list)-1] == '+':
+                    ip_list[len(ip_list)-1] = symb
+                else:
+                    ip_list[len(ip_list)-1] = ip_list[len(ip_list)-1] + symb
+                dpg.configure_item("IP_listbox",items=ip_list)
+                dpg.set_value("IP_listbox",ip_list[len(ip_list)-1])
+                dpg.set_item_user_data("IP_listbox",ip_list)
+    
+    def _enter_ip(self):
+        """вызываем команду и вводим ip"""
+        ip_list = dpg.get_item_user_data("IP_listbox")
+        if dpg.get_value("IP_listbox") == ip_list[len(ip_list)-1] and self.focused == "IP_listbox":
+            ip = dpg.get_value("IP_listbox")
+            interface = dpg.get_value("NIC_listbox")
+            self.control.add_ip(interface[2:],ip)
+
     def _update_description(self, text):
         dpg.set_value("info_descr", text)
 
@@ -96,7 +129,11 @@ class IPtoolGUI:
         nic_prev = self.model.get_interface_prev_state_by_name(interface_name)
         if not nic:
             return
-        self._update_ip_list(nic.ip_addresses)
+        
+        #обновляем только если не выбран IP_listbox или список адресов изменился иначе чем программой
+        if not self.focused == "IP_listbox" or self._is_iplist_changed():        
+            self._update_ip_list(nic.ip_addresses)
+
         self._update_description(nic.description)
         self._update_mac(nic.mac)
         self._update_speed(nic.speed)
@@ -193,18 +230,64 @@ class IPtoolGUI:
         """Обработка всех доступных нажатий с вызовом соответсвующих методов"""
         if key == dpg.mvKey_Up:
             self._vertical_move_selection(-1)
+
         elif key == dpg.mvKey_Left:
             self._horizontal_move_selection(-1)
-            print(self.focused)
+            #print(self.focused)
+
         elif key == dpg.mvKey_Right:
             self._horizontal_move_selection(1)
-            print(self.focused)
+            #print(self.focused)
+
         elif key == dpg.mvKey_Down:
             self._vertical_move_selection(1)
+
         elif key == dpg.mvKey_Delete:
             pass
+
         elif key == dpg.mvKey_Back and (1000 == dpg.get_value('main_tab_bar')):
             pass
+
+        if key == dpg.mvKey_Return:
+            self._enter_ip()
+
+        elif key == dpg.mvKey_NumPad0 or key == dpg.mvKey_0:
+            self._write_symb("0")
+
+        elif key == dpg.mvKey_NumPad1  or key == dpg.mvKey_1:
+            self._write_symb("1")
+
+        elif key == dpg.mvKey_NumPad2 or key == dpg.mvKey_2:
+            self._write_symb("2")
+
+        elif key == dpg.mvKey_NumPad3 or key == dpg.mvKey_3:
+            self._write_symb("3")
+
+        elif key == dpg.mvKey_NumPad4 or key == dpg.mvKey_4:
+            self._write_symb("4")
+
+        elif key == dpg.mvKey_NumPad5 or key == dpg.mvKey_5:
+            self._write_symb("5")
+
+        elif key == dpg.mvKey_NumPad6 or key == dpg.mvKey_6:
+            self._write_symb("6")
+    
+        elif key == dpg.mvKey_NumPad7 or key == dpg.mvKey_7:
+            self._write_symb("7")
+
+        elif key == dpg.mvKey_NumPad8 or key == dpg.mvKey_8:
+            self._write_symb("8")
+
+        elif key == dpg.mvKey_NumPad9 or key == dpg.mvKey_9:
+            self._write_symb("9")
+
+        elif key == dpg.mvKey_Decimal:
+            self._write_symb(".")
+
+        elif key == dpg.mvKey_Divide:
+            self._write_symb("/")
+
+
         
     
     #обновление содержимого

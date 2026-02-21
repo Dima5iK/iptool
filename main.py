@@ -10,9 +10,9 @@ def main():
     monitor = PowerShellMonitor()
     network_model = model.NetworkState()
     controller = NetworkController()
-    
+    frame_time:float = 0.04         #Интервал отрисовки кадров
     monitor.start()
-    ui = gui.IPtoolGUI(network_model)
+    ui = gui.IPtoolGUI(network_model,controller)
     ui.show()
 
 
@@ -27,7 +27,7 @@ def main():
                 
         dpg.render_dearpygui_frame()
         
-        time.sleep(0.02)
+        time.sleep(frame_time)
     
     ui.clean_up()
 
