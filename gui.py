@@ -64,15 +64,22 @@ class IPtoolGUI:
         else:
             return True
 
-    def _write_symb(self,symb:str):
-        """Вводим адрес в формате A.B.C.D/M вместо +"""
+    def _write_del_symb(self,symb:str,action:int):
+        """Вводим адрес в формате A.B.C.D/M вместо +. +1 - ввод, -1 - удаление"""
+        """"""
         ip_list = dpg.get_item_user_data("IP_listbox")
         if not ip_list == None:
             if dpg.get_value("IP_listbox") == ip_list[len(ip_list)-1] and self.focused == "IP_listbox":        #проверка что мы не выбрали валидный IP
-                if ip_list[len(ip_list)-1] == '+':
+                if ip_list[len(ip_list)-1] == '+' and action == 1:
                     ip_list[len(ip_list)-1] = symb
-                else:
+                elif action == 1:
                     ip_list[len(ip_list)-1] = ip_list[len(ip_list)-1] + symb
+                elif action == -1:
+                    ip_list[len(ip_list)-1] = ip_list[len(ip_list)-1][:-1]
+
+                if ip_list[len(ip_list)-1] == '':           #если удалены все символы то автоматически ставим +
+                    ip_list[len(ip_list)-1] = '+'
+
                 dpg.configure_item("IP_listbox",items=ip_list)
                 dpg.set_value("IP_listbox",ip_list[len(ip_list)-1])
                 dpg.set_item_user_data("IP_listbox",ip_list)
@@ -84,6 +91,18 @@ class IPtoolGUI:
             ip = dpg.get_value("IP_listbox")
             interface = dpg.get_value("NIC_listbox")
             self.control.add_ip(interface[2:],ip)
+
+    def _remuve_ip(self):
+        """Удаляем ip"""
+        if self.focused == "IP_listbox":
+            ip_list = dpg.get_item_user_data("IP_listbox")
+            interface = dpg.get_value("NIC_listbox")
+            ip = dpg.get_value("IP_listbox")
+            self.control.del_ip(interface[2:],ip)
+            #при удалении ip смещение курсора (сейчас кидает на +, а не на ближайшие айпи)
+            if len(ip_list) > 1:
+                dpg.set_value("IP_listbox",ip_list[len(ip_list)-1])
+
 
     def _update_description(self, text):
         dpg.set_value("info_descr", text)
@@ -228,64 +247,66 @@ class IPtoolGUI:
     
     def key_press_callback(self,sendef,key):
         """Обработка всех доступных нажатий с вызовом соответсвующих методов"""
-        if key == dpg.mvKey_Up:
-            self._vertical_move_selection(-1)
+        
+        if len(self.model.get_all_inetfaces()):         #если модель не пустая
+            if key == dpg.mvKey_Up:
+                self._vertical_move_selection(-1)
 
-        elif key == dpg.mvKey_Left:
-            self._horizontal_move_selection(-1)
-            #print(self.focused)
+            elif key == dpg.mvKey_Left:
+                self._horizontal_move_selection(-1)
+                #print(self.focused)
 
-        elif key == dpg.mvKey_Right:
-            self._horizontal_move_selection(1)
-            #print(self.focused)
+            elif key == dpg.mvKey_Right:
+                self._horizontal_move_selection(1)
+                #print(self.focused)
 
-        elif key == dpg.mvKey_Down:
-            self._vertical_move_selection(1)
+            elif key == dpg.mvKey_Down:
+                self._vertical_move_selection(1)
 
-        elif key == dpg.mvKey_Delete:
-            pass
+            elif key == dpg.mvKey_Delete:
+                self._remuve_ip()
 
-        elif key == dpg.mvKey_Back and (1000 == dpg.get_value('main_tab_bar')):
-            pass
+            elif key == dpg.mvKey_Back and (1000 == dpg.get_value('main_tab_bar')):
+                self._write_del_symb('',-1)
 
-        if key == dpg.mvKey_Return:
-            self._enter_ip()
+            if key == dpg.mvKey_Return:
+                self._enter_ip()
 
-        elif key == dpg.mvKey_NumPad0 or key == dpg.mvKey_0:
-            self._write_symb("0")
+            elif key == dpg.mvKey_NumPad0 or key == dpg.mvKey_0:
+                self._write_del_symb("0",1)
 
-        elif key == dpg.mvKey_NumPad1  or key == dpg.mvKey_1:
-            self._write_symb("1")
+            elif key == dpg.mvKey_NumPad1  or key == dpg.mvKey_1:
+                self._write_del_symb("1",1)
 
-        elif key == dpg.mvKey_NumPad2 or key == dpg.mvKey_2:
-            self._write_symb("2")
+            elif key == dpg.mvKey_NumPad2 or key == dpg.mvKey_2:
+                self._write_del_symb("2",1)
 
-        elif key == dpg.mvKey_NumPad3 or key == dpg.mvKey_3:
-            self._write_symb("3")
+            elif key == dpg.mvKey_NumPad3 or key == dpg.mvKey_3:
+                self._write_del_symb("3",1)
 
-        elif key == dpg.mvKey_NumPad4 or key == dpg.mvKey_4:
-            self._write_symb("4")
+            elif key == dpg.mvKey_NumPad4 or key == dpg.mvKey_4:
+                self._write_del_symb("4",1)
 
-        elif key == dpg.mvKey_NumPad5 or key == dpg.mvKey_5:
-            self._write_symb("5")
+            elif key == dpg.mvKey_NumPad5 or key == dpg.mvKey_5:
+                self._write_del_symb("5",1)
 
-        elif key == dpg.mvKey_NumPad6 or key == dpg.mvKey_6:
-            self._write_symb("6")
-    
-        elif key == dpg.mvKey_NumPad7 or key == dpg.mvKey_7:
-            self._write_symb("7")
+            elif key == dpg.mvKey_NumPad6 or key == dpg.mvKey_6:
+                self._write_del_symb("6",1)
+        
+            elif key == dpg.mvKey_NumPad7 or key == dpg.mvKey_7:
+                self._write_del_symb("7",1)
 
-        elif key == dpg.mvKey_NumPad8 or key == dpg.mvKey_8:
-            self._write_symb("8")
+            elif key == dpg.mvKey_NumPad8 or key == dpg.mvKey_8:
+                self._write_del_symb("8",1)
 
-        elif key == dpg.mvKey_NumPad9 or key == dpg.mvKey_9:
-            self._write_symb("9")
+            elif key == dpg.mvKey_NumPad9 or key == dpg.mvKey_9:
+                self._write_del_symb("9",1)
 
-        elif key == dpg.mvKey_Decimal:
-            self._write_symb(".")
+            elif key == dpg.mvKey_Decimal:
+                self._write_del_symb(".",1)
 
-        elif key == dpg.mvKey_Divide:
-            self._write_symb("/")
+            elif key == dpg.mvKey_Divide:
+                self._write_del_symb("/",1)
 
 
         

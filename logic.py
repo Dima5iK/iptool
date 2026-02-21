@@ -50,6 +50,9 @@ class PowerShellMonitor:
     def start(self):
         """Запускает PowerShell с заданным скриптом"""
         self.running = True
+        startupinfo = subprocess.STARTUPINFO()
+        startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+        startupinfo.wShowWindow = subprocess.SW_HIDE
         self.proc = subprocess.Popen(
             ['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', POWERSHELL_SCAN],
             stdout=subprocess.PIPE,
@@ -57,7 +60,8 @@ class PowerShellMonitor:
             text=True,
             bufsize=1,
             universal_newlines=True,
-            encoding='cp866'
+            encoding='cp866',
+            startupinfo=startupinfo
         )
         # Запускаем поток чтения
         threading.Thread(target=self._reader, daemon=True).start()
@@ -135,16 +139,18 @@ class NetworkController:
             ip,cidr = ip_cidr.split('/')
             mask = self.cidr_to_mask(cidr)
             cmd = ('netsh interface ipv4 add address "{}" {} {}'.format(interface,ip,mask))
-            #self.cmd_execute(cmd)
-            print(cmd)
+            self.cmd_execute(cmd)
+            #print(cmd)
 
     def del_ip(self,interface:str,ip_cidr:str):
-        ip,cidr = ip_cidr.split('/')
-        cmd = ('netsh interface ipv4 del address "{}" {}'.format(interface,ip))
-        #self.cmd_execute(cmd)
-        print(cmd)
-    
+        if '/' in ip_cidr:
+            ip,cidr = ip_cidr.split('/')
+            cmd = ('netsh interface ipv4 del address "{}" {}'.format(interface,ip))
+            self.cmd_execute(cmd)
+            #print(cmd)
+        else:
+            return None
     def set_dhcp(self,interface:str):
         cmd = ('netsh interface ip set address "{}" dhcp'.format(interface))
-        #self.cmd_execute(cmd)
-        print(cmd)
+        self.cmd_execute(cmd)
+        #print(cmd)
