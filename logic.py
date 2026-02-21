@@ -140,17 +140,14 @@ class NetworkController:
             mask = self.cidr_to_mask(cidr)
             cmd = ('netsh interface ipv4 add address "{}" {} {}'.format(interface,ip,mask))
             self.cmd_execute(cmd)
-            #print(cmd)
 
     def del_ip(self,interface:str,ip_cidr:str):
         if '/' in ip_cidr:
             ip,cidr = ip_cidr.split('/')
             cmd = ('netsh interface ipv4 del address "{}" {}'.format(interface,ip))
             self.cmd_execute(cmd)
-            #print(cmd)
         else:
             return None
     def set_dhcp(self,interface:str):
         cmd = ('netsh interface ip set address "{}" dhcp'.format(interface))
         self.cmd_execute(cmd)
-        #print(cmd)
