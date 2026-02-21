@@ -88,12 +88,6 @@ class NetworkState:
                     return nic.ip_addresses
         return []
     
-    def get_descr(self,interface_name:str) -> str:
-        """Возвращает описание интерфейса по"""
-
-    def get_rx_speed(self,iface:NIC):
-
-        pass
 
 
     

@@ -8,6 +8,9 @@ class IPtoolGUI:
     def __init__(self, model: NetworkState, control:NetworkController):
         
         self.focused = "NIC_listbox"
+        self.focused_theme = None
+        self.unfocused_theme = None
+
         """Переменная которая хранит название элемента который сейчас обрабатывается"""
         self.model: NetworkState = model
         self.control:NetworkController = control
@@ -24,7 +27,6 @@ class IPtoolGUI:
             dpg.add_key_press_handler(callback=self.key_press_callback)
 
     #логика клавиш управления
-
     def _vertical_move_selection(self,direction:int):
         """+1 - сдвиг вниз, -1 - свдиг вверх"""
 
@@ -48,11 +50,13 @@ class IPtoolGUI:
         if self.focused == "NIC_listbox":
             if direction == 1:
                 self.focused = "IP_listbox"
+                self._apply_focus_theme()
             elif direction == -1:
                 return None         #Возможно можно что то добавить сюда в будущем
         elif self.focused == "IP_listbox":
             if direction == -1:
                 self.focused = "NIC_listbox"
+                self._apply_focus_theme()
             elif direction == 1:
                 return None         #Сюда тоже
     
@@ -177,20 +181,43 @@ class IPtoolGUI:
         prev_tx = nic_prev.sent_bytes if nic_prev else nic.sent_bytes
         self._update_rx(nic.received_bytes, prev_rx)
         self._update_tx(nic.sent_bytes, prev_tx)
+    
+    #осветление
+    def _set_active(self):
+        """осветление"""
+        with dpg.theme() as Act_theme:
+            with dpg.theme_component(dpg.mvListbox):
+                dpg.add_theme_color(dpg.mvThemeCol_FrameBg, (61,61,65),category=dpg.mvThemeCat_Core)
+                dpg.add_theme_color(dpg.mvThemeCol_Text, (255,255,255),category=dpg.mvThemeCat_Core)
+                dpg.add_theme_color(dpg.mvThemeCol_ScrollbarGrab, (61,61,65),category=dpg.mvThemeCat_Core)
+                dpg.add_theme_color(dpg.mvThemeCol_ScrollbarBg, (61,61,65),category=dpg.mvThemeCat_Core)
+                
+        return Act_theme
 
-        self.enable_option = self.model.get_interface_by_name(dpg.get_value("NIC_listbox")[2:]).status
-        if self.enable_option == "Disabled":
-            dpg.configure_item("popup_enable",show= True)
-            dpg.configure_item("popup_disable",show=False)
+    #затенение
+    def _set_inactive(self):
+        """затенение"""
+        with dpg.theme() as Inact_theme:
+            with dpg.theme_component(dpg.mvListbox):
+                dpg.add_theme_color(dpg.mvThemeCol_FrameBg, (31,31,35),category=dpg.mvThemeCat_Core)
+                dpg.add_theme_color(dpg.mvThemeCol_Text, (180,180,180),category=dpg.mvThemeCat_Core)
+                dpg.add_theme_color(dpg.mvThemeCol_ScrollbarGrab, (31,31,35),category=dpg.mvThemeCat_Core)
+                dpg.add_theme_color(dpg.mvThemeCol_ScrollbarBg, (31,31,35),category=dpg.mvThemeCat_Core)
+                
+        return Inact_theme
+
+    def _apply_focus_theme(self):
+        if self.focused == "NIC_listbox":
+            dpg.bind_item_theme("NIC_listbox", self.focused_theme)
+            dpg.bind_item_theme("IP_listbox", self.unfocused_theme)
         else:
-            dpg.configure_item("popup_enable",show= False)
-            dpg.configure_item("popup_disable",show= True)
-
-
+            dpg.bind_item_theme("NIC_listbox", self.unfocused_theme)
+            dpg.bind_item_theme("IP_listbox", self.focused_theme)
 
     def setup_ui(self):
         """Инициализация DPG, шрифтов и контекста"""
         dpg.create_context()
+        #шрифты
         with dpg.font_registry():
             with dpg.font(FONTS.FONT_TAHOMA, 20, default_font=True, id="Default font"):
                 dpg.add_font_range_hint(dpg.mvFontRangeHint_Cyrillic)
@@ -202,12 +229,23 @@ class IPtoolGUI:
             dpg.add_font_chars([0x25b2, 0x25bc, 0x00d7 ],parent=self.smaller_font)
         dpg.bind_font("Default font")
 
+
+        
         with dpg.window(label="",tag="main_window",width=UI_CONF.main_width,height=UI_CONF.main_height):
             self.draw_content()
         self.register_key_handler()
-        dpg.create_viewport(title="IPtool",height=UI_CONF.main_height,width=UI_CONF.main_width)
+        dpg.create_viewport(title="IPtool",height=UI_CONF.main_height,width=UI_CONF.main_width,resizable=False)
         dpg.setup_dearpygui()
         dpg.set_primary_window("main_window",True)
+
+                #темы
+        with dpg.theme() as global_theme:
+            with dpg.theme_component(dpg.mvAll):
+                dpg.add_theme_style(dpg.mvStyleVar_FrameRounding, 6, category=dpg.mvThemeCat_Core)
+        dpg.bind_theme(global_theme)
+        self.focused_theme = self._set_active()
+        self.unfocused_theme = self._set_inactive()
+        self._apply_focus_theme()  # применить начальную тему
     
     def draw_content(self):
         """Отрисовка основных элементов в окне"""
@@ -219,7 +257,7 @@ class IPtoolGUI:
                     dpg.add_listbox(
                         tag="NIC_listbox",
                         num_items=UI_CONF.item_num,
-                        width= UI_CONF.main_width*0.5,
+                        width= UI_CONF.main_width*UI_CONF.listbox_width[0],
                         callback=self.show_detail
                     )
                     with dpg.popup(dpg.last_item(),tag="interface_popup",min_size=[50,40]):
@@ -230,7 +268,7 @@ class IPtoolGUI:
                     dpg.add_listbox(
                         tag="IP_listbox",
                         num_items=UI_CONF.item_num,
-                        width=UI_CONF.main_width*0.45
+                        width=UI_CONF.main_width*UI_CONF.listbox_width[1]
                     )
                 #загрушка для верстки
                 plug1 = dpg.add_text(default_value="",tag="plug1")
@@ -238,14 +276,13 @@ class IPtoolGUI:
                 
                 #описание/мак
                 with dpg.group(horizontal=True):
-                    dpg.add_input_text(tag="info_descr",default_value="описание",readonly=True,width=UI_CONF.main_width*0.60)
-                    dpg.add_input_text(tag="info_mac",default_value="MAC",readonly=True,width=UI_CONF.main_width*0.33)
-                
+                    dpg.add_input_text(tag="info_descr",default_value="описание",readonly=True,width=UI_CONF.main_width*UI_CONF.info_descr_width)
+                    dpg.add_input_text(tag="info_mac",default_value="MAC",readonly=True,width=UI_CONF.main_width*UI_CONF.info_mac_width)
                 #скорость/передано/получено
                 with dpg.group(horizontal=True):
-                    dpg.add_input_text(tag="info_speed",readonly=True, default_value="скорость",width=UI_CONF.main_width*0.24)
-                    dpg.add_input_text(tag="info_rx",readonly=True, default_value="RX",width=UI_CONF.main_width*0.35)
-                    dpg.add_input_text(tag="info_tx",readonly=True, default_value="TX",width=UI_CONF.main_width*0.33)
+                    dpg.add_input_text(tag="info_speed",readonly=True, default_value="скорость",width=UI_CONF.main_width*UI_CONF.info_speed_width)
+                    dpg.add_input_text(tag="info_rx",readonly=True, default_value="RX",width=UI_CONF.main_width*UI_CONF.info_rx_width)
+                    dpg.add_input_text(tag="info_tx",readonly=True, default_value="TX",width=UI_CONF.main_width*UI_CONF.info_tx_width)
                 
                 #Отрисовка знака вопроса
                 hlp = dpg.add_text(default_value='?',tag="help")
@@ -253,13 +290,16 @@ class IPtoolGUI:
                 with dpg.tooltip("help"):
                     dpg.add_text(default_value=UI_CONF.help_text,tag="hlp_tooltip")
                 dpg.bind_item_font("hlp_tooltip",self.smaller_font)
-                dpg.set_item_pos("help",[int(UI_CONF.main_width*0.93),int(UI_CONF.main_height*0.8)])
+                dpg.set_item_pos("help",[int(UI_CONF.main_width*UI_CONF.hlp_tooltip_scale[0]),int(UI_CONF.main_height*UI_CONF.hlp_tooltip_scale[1])])
+
         
 
 
 
             with dpg.tab(label="Route",tag=UI_CONF.route_tab_id):
                 pass
+        dpg.bind_item_theme("NIC_listbox",self.focused_theme)
+        dpg.bind_item_theme("IP_listbox",self.unfocused_theme)
     
     #callback
     def show_detail(self, sender, app_data, user_data):
@@ -267,13 +307,9 @@ class IPtoolGUI:
         # app_data — выбранная строка с префиксом (например, "▲ Ethernet")
         clean_name = app_data[2:]  # убираем первые два символа (стрелка и пробел)
         
-
         # Обновляем текстовые поля
         self._update_details_for_interface(clean_name)
         
-
-        #print(type(self.model.get_ip_list(app_data)), self.model.get_ip_list(app_data))
-        #dpg.configure_item("IP_listbox",items = self.model.get_ip_list(app_data))
     
     def key_press_callback(self,sendef,key):
         """Обработка всех доступных нажатий с вызовом соответсвующих методов"""
@@ -284,11 +320,9 @@ class IPtoolGUI:
 
             elif key == dpg.mvKey_Left:
                 self._horizontal_move_selection(-1)
-                #print(self.focused)
 
             elif key == dpg.mvKey_Right:
                 self._horizontal_move_selection(1)
-                #print(self.focused)
 
             elif key == dpg.mvKey_Down:
                 self._vertical_move_selection(1)
