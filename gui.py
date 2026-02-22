@@ -397,6 +397,14 @@ class IPtoolGUI:
             clean_name = selected_display[2:] if len(selected_display) > 2 else selected_display
             self._update_details_for_interface(clean_name)
 
+            self.enable_option = self.model.get_interface_by_name(dpg.get_value("NIC_listbox")[2:]).status
+            if self.enable_option == "Disabled":
+                dpg.configure_item("popup_enable",show= True)
+                dpg.configure_item("popup_disable",show=False)
+            else:
+                dpg.configure_item("popup_enable",show= False)
+                dpg.configure_item("popup_disable",show= True)
+
     def show(self):
         dpg.show_viewport()
 
