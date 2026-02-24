@@ -377,7 +377,7 @@ class IPtoolGUI:
     
     #обновление содержимого
     def update_display(self):
-        interfaces = self.model.get_all_inetfaces()
+        interfaces = self.model.get_all_interfaces()
         if not interfaces:
             return
 
