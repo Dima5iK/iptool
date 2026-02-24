@@ -54,13 +54,13 @@ class NetworkState:
         self.route:list[Route] = []
         self._lock = threading.RLock()
 
-    def update_intefaces(self,new_data:list[NIC]):
+    def update_interfaces(self,new_data:list[NIC]):
         """обновляет состояние интерфейсов"""
         with self._lock:
             self.interfaces_previous_state = self.interfaces
             self.interfaces = {nic.name: nic for nic in new_data}
 
-    def get_all_inetfaces(self) -> list[NIC]:
+    def get_all_interfaces(self) -> list[NIC]:
         """Возвращает список всех интерфейсов """
         with self._lock:
             return list(self.interfaces.values())
