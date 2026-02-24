@@ -99,7 +99,7 @@ class IPtoolGUI:
             interface = dpg.get_value("NIC_listbox")
             self.control.add_ip(interface[2:],ip)
 
-    def _remuve_ip(self):
+    def _remove_ip(self):
         """Удаляем ip"""
         if self.focused == "IP_listbox":
             ip_list = dpg.get_item_user_data("IP_listbox")
@@ -110,11 +110,11 @@ class IPtoolGUI:
             if len(ip_list) > 1:
                 dpg.set_value("IP_listbox",ip_list[len(ip_list)-1])
 
-    def _set_dhcp(self):
+    def _set_dhcp(self,sender,app_data,userdata):
         intterface_name = dpg.get_value("NIC_listbox")[2:]
         self.control.set_dhcp(intterface_name)
     
-    def _disable_enable_NIC(self):
+    def _disable_enable_NIC(self,sender,app_data,userdata):
         """1 - включить, 0 - Выключить интерфейс"""
         intterface_name = dpg.get_value("NIC_listbox")[2:]
         if self.enable_option == "Disabled":
@@ -314,7 +314,7 @@ class IPtoolGUI:
     def key_press_callback(self,sendef,key):
         """Обработка всех доступных нажатий с вызовом соответсвующих методов"""
         
-        if len(self.model.get_all_inetfaces()):         #если модель не пустая
+        if len(self.model.get_all_interfaces()):         #если модель не пустая
             if key == dpg.mvKey_Up:
                 self._vertical_move_selection(-1)
 
@@ -328,7 +328,7 @@ class IPtoolGUI:
                 self._vertical_move_selection(1)
 
             elif key == dpg.mvKey_Delete:
-                self._remuve_ip()
+                self._remove_ip()
 
             elif key == dpg.mvKey_Back and (1000 == dpg.get_value('main_tab_bar')):
                 self._write_del_symb('',-1)

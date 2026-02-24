@@ -94,11 +94,11 @@ class PowerShellMonitor:
 
 class NetworkController:
     """Здесь описаны команды управления"""
-    def cmd_execute(self,cmd):
+    def cmd_execute(self, args:list):
         """Тсполнение команды в субпроцессе"""
         startupinfo = subprocess.STARTUPINFO()
         startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
-        subprocess.run(cmd, shell=True, startupinfo=startupinfo, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        subprocess.run(args, startupinfo=startupinfo, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     
     def verify_ip(self,ip_cidr:str) -> bool:
         """проверка корректности адреса"""

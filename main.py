@@ -19,7 +19,7 @@ def main():
     while dpg.is_dearpygui_running():
 
         if monitor.new_data_flag:
-            network_model.update_intefaces(monitor.new_data)
+            network_model.update_interfaces(monitor.new_data)
             monitor.new_data_flag = False
             if network_model:
                 ui.update_display()
