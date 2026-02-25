@@ -9,7 +9,7 @@ class FONTS:
 #размеры 
 class UI_CONF:
     version:float = 0.2
-    main_width = 800
+    main_width = 700
     main_height = 400
     
     #id  вкладок
@@ -17,13 +17,22 @@ class UI_CONF:
     route_tab_id = 1001
     
     #параметры lisbox в ip_tab_id
+    NIC_listbox_tag = "NIC_listbox"
+    IP_listbox_tag = "IP_listbox"
+    info_descr_tag = "info_descr"
+    info_mac_tag = "info_mac"
+    info_speed_tag = "info_speed"
+    info_rx_tag = "info_rx"
+    info_tx_tag = "info_tx"
+    help_tooltip_text_tag = "help_tooltip_text"
     item_num = 8
-    listbox_width = [0.5,0.45]      # масштаб ширины для NIC_listbox и IP_listbox
-    info_descr_width = 0.6          
-    info_mac_width = 0.33
-    info_speed_width = 0.24
-    info_rx_width = 0.35
-    info_tx_width = 0.33
+    NIC_listbox_scale = 0.6      # масштаб ширины для NIC_listbox и IP_listbox
+    IP_listbox_scale = 0.345
+    info_descr_scale = 0.6          
+    info_mac_scale = 0.33
+    info_speed_scale = 0.24
+    info_rx_scale = 0.35
+    info_tx_scale = 0.33
     hlp_tooltip_scale = [0.93,0.80] # множитель координат для help_text
     help_text = ''' ▲ - linkUp \t ▼ - linkDown \t пусто - admin status disable\n Управление: \n Стелки вверх/вниз - перемещение по устройствам или адресам (можно курсором) \n Стрелки влео/вправо - перелючение между колонками 
  NumPad - ввод адреса\n Enter - задать ip-адрес\n Delete - удалить выбранный адрес\n ПКМ по устройству - переключить на DHCP(статические ip удаяются)\nv{}'''.format(version)
