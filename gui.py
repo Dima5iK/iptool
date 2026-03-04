@@ -240,7 +240,8 @@ class IPtoolGUI:
         self.register_key_handler()
         self.register_resize_handler()
         dpg.bind_item_handler_registry("main_window", "resize_handler")
-        dpg.create_viewport(title="IPtool",height=self.conf.main_height,width=self.conf.main_width,resizable=True)
+        dpg.create_viewport(title="IPtool",height=self.conf.main_height,width=self.conf.main_width,resizable=True, 
+                            min_width= self.conf.main_min_width, min_height=self.conf.main_min_height, max_height= self.conf.main_max_height)
         dpg.setup_dearpygui()
         dpg.set_primary_window("main_window",True)
 
@@ -291,12 +292,12 @@ class IPtoolGUI:
                     dpg.add_input_text(tag=self.conf.info_tx_tag,readonly=True, default_value="TX",width=self.conf.main_width*self.conf.info_tx_scale)
                 
                 #Отрисовка знака вопроса
-                hlp = dpg.add_text(default_value='?',tag="help")
+                hlp = dpg.add_text(default_value='?',tag=self.conf.help_tooltip_text_tag)
                 dpg.bind_item_font(hlp,self.bigger_font)
-                with dpg.tooltip("help"):
+                with dpg.tooltip(self.conf.help_tooltip_text_tag):
                     dpg.add_text(default_value=self.conf.help_text,tag="hlp_tooltip")
                 dpg.bind_item_font("hlp_tooltip",self.smaller_font)
-                dpg.set_item_pos("help",[int(self.conf.main_width*self.conf.hlp_tooltip_scale[0]),int(self.conf.main_height*self.conf.hlp_tooltip_scale[1])])
+                dpg.set_item_pos(self.conf.help_tooltip_text_tag,[int(self.conf.main_width*self.conf.hlp_tooltip_scale[0]),int(self.conf.main_height*self.conf.hlp_tooltip_scale[1])])
 
         
 
@@ -380,8 +381,9 @@ class IPtoolGUI:
 
 
     def resize_callback(self,sender,appdata, user_data):
-        window_width:int = dpg.get_item_width("main_window")
-        window_height:int = dpg.get_item_height("main_window")
+        main_window_width:int = dpg.get_item_width("main_window")
+        main_window_height:int = dpg.get_item_height("main_window")
+
         items_list:list = [self.conf.NIC_listbox_tag,self.conf.IP_listbox_tag,self.conf.info_descr_tag,
                            self.conf.info_mac_tag,self.conf.info_speed_tag, self.conf.info_rx_tag, self.conf.info_tx_tag]
         
@@ -389,12 +391,53 @@ class IPtoolGUI:
                                 self.conf.info_mac_scale, self.conf.info_speed_scale,self.conf.info_rx_scale,
                                 self.conf.info_tx_scale ]
         for iter in range(len(items_list)):
-            dpg.configure_item(items_list[iter],width = int(window_width*item_scale_list[iter]))
+            dpg.configure_item(items_list[iter],width = int(main_window_width*item_scale_list[iter]))
 
-        
 
+        dpg.set_item_pos(self.conf.help_tooltip_text_tag,[main_window_width*self.conf.hlp_tooltip_scale[0],main_window_height*self.conf.hlp_tooltip_scale[1]])
+
+        match ((main_window_height - 170) // 10):
+
+            case 10:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=4)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=4)
+            case 13:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=5)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=5)
+            case 15:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=6)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=6)
+            case 17:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=7)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=7)
+            case 20:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=8)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=8)
+            case 22:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=9)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=9)
+            case 25:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=10)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=10)
+            case 27:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=11)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=11)
+            case 29:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=12)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=12)
+            case 32:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=13)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=13)
+            case 34:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=14)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=14)
+            case 37:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=15)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=15)
+            # Для всех остальных значений можно ничего не делать или задать значение по умолчанию
+            case _:
+                pass  # или, например, dpg.configure_item("listbox", num_items=3)
         
-    
     #обновление содержимого
     def update_display(self):
         interfaces = self.model.get_all_interfaces()
