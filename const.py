@@ -10,7 +10,7 @@ class FONTS:
 class UI_CONF:
     version:float = 0.2
     main_width = 500
-    main_height = 280
+    main_height = 270
     main_min_width = 500
     main_min_height = 280
     main_max_height = 550

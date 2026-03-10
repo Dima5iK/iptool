@@ -21,14 +21,152 @@ class IPtoolGUI:
 
         
 
+    #callback
+
+    def show_detail_callback(self, sender, app_data):
+        """Показывает детали IP, описание и тд"""
+        if app_data[1] == "NIC_listbox":
+            user_data = dpg.get_value(app_data[1])
+            clean_name = user_data[2:]  # убираем первые два символа (стрелка и пробел)
+            # Обновляем текстовые поля
+            self._update_details_for_interface(clean_name)
+        elif app_data[1] == "IP_listbox":
+            pass
+    
+    def show_popup_callback(self,sender, app_data, user_data):
+        dpg.configure_item("interface_popup",show = True)
+    
+    def key_press_callback(self,sendef,key):
+        """Обработка всех доступных нажатий с вызовом соответсвующих методов"""
+        
+        if len(self.model.get_all_interfaces()):         #если модель не пустая
+            if key == dpg.mvKey_Up:
+                self._vertical_move_selection(-1)
+
+            elif key == dpg.mvKey_Left:
+                self._horizontal_move_selection(-1)
+
+            elif key == dpg.mvKey_Right:
+                self._horizontal_move_selection(1)
+
+            elif key == dpg.mvKey_Down:
+                self._vertical_move_selection(1)
+
+            elif key == dpg.mvKey_Delete:
+                self._remove_ip()
+
+            elif key == dpg.mvKey_Back and (1000 == dpg.get_value('main_tab_bar')):
+                self._write_del_symb('',-1)
+
+            if key == dpg.mvKey_Return:
+                self._enter_ip()
+
+            elif key == dpg.mvKey_NumPad0 or key == dpg.mvKey_0:
+                self._write_del_symb("0",1)
+
+            elif key == dpg.mvKey_NumPad1  or key == dpg.mvKey_1:
+                self._write_del_symb("1",1)
+
+            elif key == dpg.mvKey_NumPad2 or key == dpg.mvKey_2:
+                self._write_del_symb("2",1)
+
+            elif key == dpg.mvKey_NumPad3 or key == dpg.mvKey_3:
+                self._write_del_symb("3",1)
+
+            elif key == dpg.mvKey_NumPad4 or key == dpg.mvKey_4:
+                self._write_del_symb("4",1)
+
+            elif key == dpg.mvKey_NumPad5 or key == dpg.mvKey_5:
+                self._write_del_symb("5",1)
+
+            elif key == dpg.mvKey_NumPad6 or key == dpg.mvKey_6:
+                self._write_del_symb("6",1)
+        
+            elif key == dpg.mvKey_NumPad7 or key == dpg.mvKey_7:
+                self._write_del_symb("7",1)
+
+            elif key == dpg.mvKey_NumPad8 or key == dpg.mvKey_8:
+                self._write_del_symb("8",1)
+
+            elif key == dpg.mvKey_NumPad9 or key == dpg.mvKey_9:
+                self._write_del_symb("9",1)
+
+            elif key == dpg.mvKey_Decimal:
+                self._write_del_symb(".",1)
+
+            elif key == dpg.mvKey_Divide:
+                self._write_del_symb("/",1)
+
+
+    def resize_callback(self,sender,appdata, user_data):
+        main_window_width:int = dpg.get_item_width("main_window")
+        main_window_height:int = dpg.get_item_height("main_window")
+
+        items_list:list = [self.conf.NIC_listbox_tag,self.conf.IP_listbox_tag,self.conf.info_descr_tag,
+                           self.conf.info_mac_tag,self.conf.info_speed_tag, self.conf.info_rx_tag, self.conf.info_tx_tag]
+        
+        item_scale_list:list = [self.conf.NIC_listbox_scale, self.conf.IP_listbox_scale, self.conf.info_descr_scale, 
+                                self.conf.info_mac_scale, self.conf.info_speed_scale,self.conf.info_rx_scale,
+                                self.conf.info_tx_scale ]
+        for iter in range(len(items_list)):
+            dpg.configure_item(items_list[iter],width = int(main_window_width*item_scale_list[iter]))
+
+
+        dpg.set_item_pos(self.conf.help_tooltip_text_tag,[main_window_width*self.conf.hlp_tooltip_scale[0],main_window_height*self.conf.hlp_tooltip_scale[1]])
+
+        match ((main_window_height - 170) // 10):
+
+            case 10:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=4)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=4)
+            case 11:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=5)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=5)
+            case 13:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=6)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=6)
+            case 15:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=7)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=7)
+            case 18:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=8)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=8)
+            case 20:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=9)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=9)
+            case 23:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=10)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=10)
+            case 25:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=11)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=11)
+            case 27:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=12)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=12)
+            case 30:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=13)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=13)
+            case 32:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=14)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=14)
+            case 35:
+                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=15)
+                dpg.configure_item(self.conf.IP_listbox_tag, num_items=15)
+            # Для всех остальных значений можно ничего не делать или задать значение по умолчанию
+            case _:
+                pass  # или, например, dpg.configure_item("listbox", num_items=3)
+        
     
     def register_key_handler(self):
         with dpg.handler_registry():
             dpg.add_key_press_handler(callback=self.key_press_callback)
 
-    def register_resize_handler(self):
+    def register_click_handler(self):
         with dpg.item_handler_registry(tag="resize_handler"):
             dpg.add_item_resize_handler(callback=self.resize_callback)
+        with dpg.item_handler_registry(tag="listbox_click"):
+            dpg.add_item_clicked_handler(callback=self.show_detail_callback, button= 0)
+            dpg.add_item_clicked_handler(button=1,callback=self.show_popup_callback)
 
     #логика клавиш управления
     def _vertical_move_selection(self,direction:int):
@@ -238,8 +376,10 @@ class IPtoolGUI:
         with dpg.window(label="",tag="main_window",width=self.conf.main_width,height=self.conf.main_height):
             self.draw_content()
         self.register_key_handler()
-        self.register_resize_handler()
+        self.register_click_handler()
         dpg.bind_item_handler_registry("main_window", "resize_handler")
+        dpg.bind_item_handler_registry(self.conf.NIC_listbox_tag, "listbox_click")
+        dpg.bind_item_handler_registry(self.conf.IP_listbox_tag, "listbox_click")
         dpg.create_viewport(title="IPtool",height=self.conf.main_height,width=self.conf.main_width,resizable=True, 
                             min_width= self.conf.main_min_width, min_height=self.conf.main_min_height, max_height= self.conf.main_max_height)
         dpg.setup_dearpygui()
@@ -265,7 +405,7 @@ class IPtoolGUI:
                         tag=self.conf.NIC_listbox_tag,
                         num_items=self.conf.item_num,
                         width= self.conf.main_width*self.conf.NIC_listbox_scale,
-                        callback=self.show_detail
+                        
                     )
                     with dpg.popup(dpg.last_item(),tag="interface_popup",min_size=[50,40]):
                         dpg.add_menu_item(label="DHCP", callback=self._set_dhcp,tag="popup_dhcp")
@@ -308,136 +448,6 @@ class IPtoolGUI:
         dpg.bind_item_theme(self.conf.NIC_listbox_tag,self.focused_theme)
         dpg.bind_item_theme(self.conf.IP_listbox_tag,self.unfocused_theme)
     
-    #callback
-    def show_detail(self, sender, app_data, user_data):
-        """Показывает детали IP, описание и тд"""
-        # app_data — выбранная строка с префиксом (например, "▲ Ethernet")
-        clean_name = app_data[2:]  # убираем первые два символа (стрелка и пробел)
-        
-        # Обновляем текстовые поля
-        self._update_details_for_interface(clean_name)
-        
-    
-    def key_press_callback(self,sendef,key):
-        """Обработка всех доступных нажатий с вызовом соответсвующих методов"""
-        
-        if len(self.model.get_all_interfaces()):         #если модель не пустая
-            if key == dpg.mvKey_Up:
-                self._vertical_move_selection(-1)
-
-            elif key == dpg.mvKey_Left:
-                self._horizontal_move_selection(-1)
-
-            elif key == dpg.mvKey_Right:
-                self._horizontal_move_selection(1)
-
-            elif key == dpg.mvKey_Down:
-                self._vertical_move_selection(1)
-
-            elif key == dpg.mvKey_Delete:
-                self._remove_ip()
-
-            elif key == dpg.mvKey_Back and (1000 == dpg.get_value('main_tab_bar')):
-                self._write_del_symb('',-1)
-
-            if key == dpg.mvKey_Return:
-                self._enter_ip()
-
-            elif key == dpg.mvKey_NumPad0 or key == dpg.mvKey_0:
-                self._write_del_symb("0",1)
-
-            elif key == dpg.mvKey_NumPad1  or key == dpg.mvKey_1:
-                self._write_del_symb("1",1)
-
-            elif key == dpg.mvKey_NumPad2 or key == dpg.mvKey_2:
-                self._write_del_symb("2",1)
-
-            elif key == dpg.mvKey_NumPad3 or key == dpg.mvKey_3:
-                self._write_del_symb("3",1)
-
-            elif key == dpg.mvKey_NumPad4 or key == dpg.mvKey_4:
-                self._write_del_symb("4",1)
-
-            elif key == dpg.mvKey_NumPad5 or key == dpg.mvKey_5:
-                self._write_del_symb("5",1)
-
-            elif key == dpg.mvKey_NumPad6 or key == dpg.mvKey_6:
-                self._write_del_symb("6",1)
-        
-            elif key == dpg.mvKey_NumPad7 or key == dpg.mvKey_7:
-                self._write_del_symb("7",1)
-
-            elif key == dpg.mvKey_NumPad8 or key == dpg.mvKey_8:
-                self._write_del_symb("8",1)
-
-            elif key == dpg.mvKey_NumPad9 or key == dpg.mvKey_9:
-                self._write_del_symb("9",1)
-
-            elif key == dpg.mvKey_Decimal:
-                self._write_del_symb(".",1)
-
-            elif key == dpg.mvKey_Divide:
-                self._write_del_symb("/",1)
-
-
-    def resize_callback(self,sender,appdata, user_data):
-        main_window_width:int = dpg.get_item_width("main_window")
-        main_window_height:int = dpg.get_item_height("main_window")
-
-        items_list:list = [self.conf.NIC_listbox_tag,self.conf.IP_listbox_tag,self.conf.info_descr_tag,
-                           self.conf.info_mac_tag,self.conf.info_speed_tag, self.conf.info_rx_tag, self.conf.info_tx_tag]
-        
-        item_scale_list:list = [self.conf.NIC_listbox_scale, self.conf.IP_listbox_scale, self.conf.info_descr_scale, 
-                                self.conf.info_mac_scale, self.conf.info_speed_scale,self.conf.info_rx_scale,
-                                self.conf.info_tx_scale ]
-        for iter in range(len(items_list)):
-            dpg.configure_item(items_list[iter],width = int(main_window_width*item_scale_list[iter]))
-
-
-        dpg.set_item_pos(self.conf.help_tooltip_text_tag,[main_window_width*self.conf.hlp_tooltip_scale[0],main_window_height*self.conf.hlp_tooltip_scale[1]])
-
-        match ((main_window_height - 170) // 10):
-
-            case 10:
-                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=4)
-                dpg.configure_item(self.conf.IP_listbox_tag, num_items=4)
-            case 13:
-                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=5)
-                dpg.configure_item(self.conf.IP_listbox_tag, num_items=5)
-            case 15:
-                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=6)
-                dpg.configure_item(self.conf.IP_listbox_tag, num_items=6)
-            case 17:
-                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=7)
-                dpg.configure_item(self.conf.IP_listbox_tag, num_items=7)
-            case 20:
-                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=8)
-                dpg.configure_item(self.conf.IP_listbox_tag, num_items=8)
-            case 22:
-                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=9)
-                dpg.configure_item(self.conf.IP_listbox_tag, num_items=9)
-            case 25:
-                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=10)
-                dpg.configure_item(self.conf.IP_listbox_tag, num_items=10)
-            case 27:
-                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=11)
-                dpg.configure_item(self.conf.IP_listbox_tag, num_items=11)
-            case 29:
-                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=12)
-                dpg.configure_item(self.conf.IP_listbox_tag, num_items=12)
-            case 32:
-                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=13)
-                dpg.configure_item(self.conf.IP_listbox_tag, num_items=13)
-            case 34:
-                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=14)
-                dpg.configure_item(self.conf.IP_listbox_tag, num_items=14)
-            case 37:
-                dpg.configure_item(self.conf.NIC_listbox_tag, num_items=15)
-                dpg.configure_item(self.conf.IP_listbox_tag, num_items=15)
-            # Для всех остальных значений можно ничего не делать или задать значение по умолчанию
-            case _:
-                pass  # или, например, dpg.configure_item("listbox", num_items=3)
-        
     #обновление содержимого
     def update_display(self):
         interfaces = self.model.get_all_interfaces()
@@ -461,7 +471,7 @@ class IPtoolGUI:
             self._update_details_for_interface(clean_name)
 
             self.enable_option = self.model.get_interface_by_name(dpg.get_value(self.conf.NIC_listbox_tag)[2:]).status
-            if self.enable_option == "Disabled":
+            if self.enable_option == "Disabled" or self.enable_option == "Not Present":
                 dpg.configure_item("popup_enable",show= True)
                 dpg.configure_item("popup_disable",show=False)
             else:
