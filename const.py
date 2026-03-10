@@ -9,8 +9,8 @@ class FONTS:
 #размеры 
 class UI_CONF:
     version:float = 0.2
-    main_width = 700
-    main_height = 350
+    main_width = 500
+    main_height = 280
     main_min_width = 500
     main_min_height = 280
     main_max_height = 550
@@ -28,7 +28,7 @@ class UI_CONF:
     info_rx_tag = "info_rx"
     info_tx_tag = "info_tx"
     help_tooltip_text_tag = "help_tooltip_text"
-    item_num = 6
+    item_num = 4
     NIC_listbox_scale = 0.6      # масштаб ширины для NIC_listbox и IP_listbox
     IP_listbox_scale = 0.345
     info_descr_scale = 0.6          
