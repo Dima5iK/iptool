@@ -23,17 +23,27 @@ class IPtoolGUI:
 
     #callback
 
-    def show_detail_callback(self, sender, app_data):
-        """Показывает детали IP, описание и тд"""
-        if app_data[1] == "NIC_listbox":
+    def lmb_click_callback(self, sender, app_data):
+        """Обработка ЛКМ
+
+        Показывает детали IP, описание и тд"""
+
+        if self.focused == self.conf.NIC_listbox_tag and app_data[1] == self.conf.NIC_listbox_tag:
             user_data = dpg.get_value(app_data[1])
             clean_name = user_data[2:]  # убираем первые два символа (стрелка и пробел)
             # Обновляем текстовые поля
             self._update_details_for_interface(clean_name)
-        elif app_data[1] == "IP_listbox":
-            pass
+
+        elif self.focused == self.conf.IP_listbox_tag and app_data[1] == self.conf.NIC_listbox_tag:
+            self.focused = self.conf.NIC_listbox_tag
+            self._apply_focus_theme()
+        
+        elif self.focused == self.conf.NIC_listbox_tag and app_data[1] == self.conf.IP_listbox_tag:
+            self.focused = self.conf.IP_listbox_tag
+            self._apply_focus_theme()
     
     def show_popup_callback(self,sender, app_data, user_data):
+        """обработка ПКМ"""
         dpg.configure_item("interface_popup",show = True)
     
     def key_press_callback(self,sendef,key):
@@ -165,7 +175,7 @@ class IPtoolGUI:
         with dpg.item_handler_registry(tag="resize_handler"):
             dpg.add_item_resize_handler(callback=self.resize_callback)
         with dpg.item_handler_registry(tag="listbox_click"):
-            dpg.add_item_clicked_handler(callback=self.show_detail_callback, button= 0)
+            dpg.add_item_clicked_handler(callback=self.lmb_click_callback, button= 0)
             dpg.add_item_clicked_handler(button=1,callback=self.show_popup_callback)
 
     #логика клавиш управления
