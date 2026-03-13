@@ -8,7 +8,7 @@ class FONTS:
 
 #размеры 
 class UI_CONF:
-    version:float = 0.2
+    version:float = 0.3
     main_width = 500
     main_height = 270
     main_min_width = 500
