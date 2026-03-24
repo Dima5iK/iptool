@@ -78,10 +78,13 @@ class MainWindow:
         dpg.bind_item_handler_registry("main_window", "resize_handler")
 
     def _key_press_callback(self, sender, key):
+        print(f"[DEBUG] key pressed: {key}")
         # Определяем активную вкладку
         active_tab_tag = dpg.get_value("main_tab_bar")
+        print(f"[DEBUG] active tab: {active_tab_tag}")
         tab = self.tabs.get(active_tab_tag)
         if tab:
+            
             tab.handle_key(key)
 
     def _resize_callback(self, sender, app_data):

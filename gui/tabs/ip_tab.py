@@ -48,9 +48,6 @@ class IPTab(BaseTab):
                     width=int(self.conf.main_width * self.conf.IP_listbox_scale)
                 )
 
-            # Пустой текст для отступа
-            dpg.add_text(default_value="", tag="plug1")
-
             # Вторая строка: описание и MAC
             with dpg.group(horizontal=True):
                 dpg.add_input_text(tag=self.info_descr_tag, default_value="описание", readonly=True,
@@ -322,12 +319,46 @@ class IPTab(BaseTab):
 
         # Вычисляем количество элементов в listbox в зависимости от высоты
         # (логика из resize_callback)
-        available_height = height - 170  # примерное значение, можно уточнить
-        num_items = available_height // 10
-        # Ограничиваем разумными пределами
-        if num_items < 4:
-            num_items = 4
-        elif num_items > 15:
-            num_items = 15
-        dpg.configure_item(self.nic_listbox_tag, num_items=num_items)
-        dpg.configure_item(self.ip_listbox_tag, num_items=num_items)
+
+        match ((height - 170) // 10):
+
+            case 10:
+                dpg.configure_item(self.nic_listbox_tag, num_items=4)
+                dpg.configure_item(self.ip_listbox_tag, num_items=4)
+            case 11:
+                dpg.configure_item(self.nic_listbox_tag, num_items=5)
+                dpg.configure_item(self.ip_listbox_tag, num_items=5)
+            case 13:
+                dpg.configure_item(self.nic_listbox_tag, num_items=6)
+                dpg.configure_item(self.ip_listbox_tag, num_items=6)
+            case 15:
+                dpg.configure_item(self.nic_listbox_tag, num_items=7)
+                dpg.configure_item(self.ip_listbox_tag, num_items=7)
+            case 18:
+                dpg.configure_item(self.nic_listbox_tag, num_items=8)
+                dpg.configure_item(self.ip_listbox_tag, num_items=8)
+            case 20:
+                dpg.configure_item(self.nic_listbox_tag, num_items=9)
+                dpg.configure_item(self.ip_listbox_tag, num_items=9)
+            case 23:
+                dpg.configure_item(self.nic_listbox_tag, num_items=10)
+                dpg.configure_item(self.ip_listbox_tag, num_items=10)
+            case 25:
+                dpg.configure_item(self.nic_listbox_tag, num_items=11)
+                dpg.configure_item(self.ip_listbox_tag, num_items=11)
+            case 27:
+                dpg.configure_item(self.nic_listbox_tag, num_items=12)
+                dpg.configure_item(self.ip_listbox_tag, num_items=12)
+            case 30:
+                dpg.configure_item(self.nic_listbox_tag, num_items=13)
+                dpg.configure_item(self.ip_listbox_tag, num_items=13)
+            case 32:
+                dpg.configure_item(self.nic_listbox_tag, num_items=14)
+                dpg.configure_item(self.ip_listbox_tag, num_items=14)
+            case 35:
+                dpg.configure_item(self.nic_listbox_tag, num_items=15)
+                dpg.configure_item(self.ip_listbox_tag, num_items=15)
+            # Для всех остальных значений можно ничего не делать или задать значение по умолчанию
+            case _:
+                pass  # или, например, dpg.configure_item("listbox", num_items=3)
+        

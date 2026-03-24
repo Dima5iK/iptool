@@ -10,9 +10,9 @@ class FONTS:
 class UI_CONF:
     version:float = 0.3
     main_width = 500
-    main_height = 270
+    main_height = 260
     main_min_width = 500
-    main_min_height = 280
+    main_min_height = 260
     main_max_height = 550
     
     #id  вкладок
