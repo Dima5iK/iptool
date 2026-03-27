@@ -88,6 +88,8 @@ class IPTab(BaseTab):
     def handle_key(self, key):
         """Возвращает True, если клавиша обработана"""
         focused = self.focus_manager.get_focused_element()
+        print("ip_tab.key:", key)
+        print("ip_tab.focused:",focused)
         if not focused:
             return False
 
@@ -283,14 +285,14 @@ class IPTab(BaseTab):
                     dpg.configure_item(self.popup_enable, show=False)
                     dpg.configure_item(self.popup_disable, show=True)
 
-    def _update_details_for_interface(self, interface_name):
+    def _update_details_for_interface(self, interface_name:str):
         """Обновляет нижнюю панель для указанного интерфейса"""
         nic = self.model.get_interface_by_name(interface_name)
         nic_prev = self.model.get_interface_prev_state_by_name(interface_name)
         if not nic:
             return
 
-        # Обновляем список IP (добавляем '+')
+        # Обновляем список IP (добавляем '+') если 
         ip_list = nic.ip_addresses.copy()
         ip_list.append("+")
         dpg.configure_item(self.ip_listbox_tag, items=ip_list)
@@ -320,7 +322,7 @@ class IPTab(BaseTab):
         # Вычисляем количество элементов в listbox в зависимости от высоты
         # (логика из resize_callback)
 
-        match ((height - 170) // 10):
+        match ((height - 165) // 10):
 
             case 10:
                 dpg.configure_item(self.nic_listbox_tag, num_items=4)

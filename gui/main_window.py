@@ -11,7 +11,7 @@ class MainWindow:
         self.conf = UI_CONF()
         self.focus_manager = FocusManager()
         self.tabs = {}          # словарь {tab_id: tab_object}
-        self.active_tab_id = None
+        self.active_tab_tag = None
 
         self._setup_dpg()
         self._create_fonts()
@@ -59,7 +59,7 @@ class MainWindow:
             self.tabs["route_tab"] = route_tab
 
         # Устанавливаем начальную активную вкладку
-        self.active_tab_id = "ip_tab"
+        self.active_tab_tag = "ip_tab"
         dpg.set_value("main_tab_bar", "ip_tab")
 
         # Добавляем всплывающую подсказку (знак вопроса) – вынесем в IPTab или оставим здесь?
@@ -78,10 +78,11 @@ class MainWindow:
         dpg.bind_item_handler_registry("main_window", "resize_handler")
 
     def _key_press_callback(self, sender, key):
-        print(f"[DEBUG] key pressed: {key}")
         # Определяем активную вкладку
         active_tab_tag = dpg.get_value("main_tab_bar")
-        print(f"[DEBUG] active tab: {active_tab_tag}")
+        if isinstance(active_tab_tag, int):
+            active_tab_tag = dpg.get_item_alias(active_tab_tag)
+
         tab = self.tabs.get(active_tab_tag)
         if tab:
             
