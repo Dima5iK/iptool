@@ -24,6 +24,7 @@ class FocusManager:
 
     def set_focus(self, tag):
         """Устанавливает фокус на указанный элемент"""
+        print("focus_manager.set_fous:", tag)
         if tag not in self._elements:
             return
         # снимаем фокус с текущего

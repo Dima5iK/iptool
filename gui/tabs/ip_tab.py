@@ -88,6 +88,8 @@ class IPTab(BaseTab):
     def handle_key(self, key):
         """Возвращает True, если клавиша обработана"""
         focused = self.focus_manager.get_focused_element()
+        print("ip_tab.key:", key)
+        print("ip_tab.focused:",focused)
         if not focused:
             return False
 
@@ -320,7 +322,7 @@ class IPTab(BaseTab):
         # Вычисляем количество элементов в listbox в зависимости от высоты
         # (логика из resize_callback)
 
-        match ((height - 170) // 10):
+        match ((height - 165) // 10):
 
             case 10:
                 dpg.configure_item(self.nic_listbox_tag, num_items=4)

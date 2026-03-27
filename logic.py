@@ -5,7 +5,16 @@ from const import POWERSHELL_SCAN
 import subprocess, threading,json
 from model import NIC
 
+def compare_states(prev_state:dict,curr_state:dict) -> bool:
+    """Сравниваем прошлое состояние модели и текущее\n
+        true - состояние изменилось\n
+        false - состояние не изменилось"""
 
+    if prev_state.keys() & curr_state.keys() == curr_state.keys():
+        return False
+    else:
+        return(True)
+    pass
 
 class PowerShellMonitor:
     """Класс создает и запускает процесс с источником данных"""

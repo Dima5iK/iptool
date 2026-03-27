@@ -85,6 +85,14 @@ class NetworkState:
             return nic.ip_addresses if nic else []
         return []
     
-
+    def config_changed(self,prev_nic_state:NIC, curr_nic_state:NIC):
+        """Возвращает True, если изменились поля, влияющие на отображение конфигурации"""
+        if prev_nic_state is None:
+            return True
+        return (prev_nic_state.ip_addresses != curr_nic_state.ip_addresses or
+                prev_nic_state.status != curr_nic_state.status or
+                prev_nic_state.speed != curr_nic_state.speed or
+                prev_nic_state.description != curr_nic_state.description or
+                prev_nic_state.mac != curr_nic_state.mac)
 
     

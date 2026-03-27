@@ -449,10 +449,6 @@ class IPtoolGUI:
                 dpg.bind_item_font("hlp_tooltip",self.smaller_font)
                 dpg.set_item_pos(self.conf.help_tooltip_text_tag,[int(self.conf.main_width*self.conf.hlp_tooltip_scale[0]),int(self.conf.main_height*self.conf.hlp_tooltip_scale[1])])
 
-        
-
-
-
             with dpg.tab(label="Route",tag=self.conf.route_tab_id):
                 pass
         dpg.bind_item_theme(self.conf.NIC_listbox_tag,self.focused_theme)
