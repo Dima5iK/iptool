@@ -19,8 +19,7 @@ def main():
         if monitor.new_data_flag :
             network_model.update_interfaces(monitor.new_data)
             monitor.new_data_flag = False
-            if compare_states(network_model.interfaces_previous_state,network_model.interfaces):
-                ui.update_display()
+            ui.update_display()
 
         dpg.render_dearpygui_frame()
         time.sleep(frame_time)

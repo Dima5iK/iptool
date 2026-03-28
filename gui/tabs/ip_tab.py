@@ -3,9 +3,10 @@ import dearpygui.dearpygui as dpg
 from const import UI_CONF
 from .base_tab import BaseTab
 from ..helpers import format_speed, format_interface_status
-
+from model import NetworkState, NIC
+from logic import NetworkController
 class IPTab(BaseTab):
-    def __init__(self, model, controller, focus_manager, parent_tag):
+    def __init__(self, model:NetworkState, controller:NetworkController, focus_manager, parent_tag):
         super().__init__(model, controller, focus_manager, parent_tag)
         self.conf = UI_CONF()
         # теги элементов
@@ -256,17 +257,42 @@ class IPTab(BaseTab):
     # ---------- Обновление отображения ----------
     def update_display(self):
         """Обновляет все элементы данными из модели"""
-        interfaces = self.model.get_all_interfaces()
+        #если список интерфейсов пуст ничего не длелаем
+        interfaces = self.model.get_listed_interfaces(self.model.interfaces)
         if not interfaces:
             return
-
+        
+        if self.model._is_interfaces_changed():
         # Обновляем список интерфейсов
-        display_names = []
-        for nic in interfaces:
-            symbol = format_interface_status(nic.status)
-            display_names.append(f"{symbol} {nic.name}")
-        dpg.configure_item(self.nic_listbox_tag, items=display_names)
-        dpg.set_item_user_data(self.nic_listbox_tag, display_names)
+            display_names = []
+            nic:NIC
+            for nic in interfaces:
+                symbol = format_interface_status(nic.status)
+                display_names.append(f"{symbol} {nic.name}")
+            dpg.configure_item(self.nic_listbox_tag, items=display_names)
+            dpg.set_item_user_data(self.nic_listbox_tag, display_names)
+
+        # Обновляем список айпи адресов
+        selected_display = dpg.get_value(self.nic_listbox_tag)
+        clean_name = selected_display[2:]
+        nic = self.model.get_interface_by_name(clean_name)
+        if self.model._is_ip_changed(clean_name):
+            ip_list = nic.ip_addresses.copy()
+            ip_list.append("+")
+            dpg.configure_item(self.ip_listbox_tag, items=ip_list)
+            dpg.set_item_user_data(self.ip_listbox_tag, ip_list)
+        
+        # Обновляем данные скорости
+        if self.model._is_interface_speed_changed(clean_name):
+            dpg.set_value(self.info_speed_tag, format_speed(nic.speed, 1))
+
+        nic_prev = self.model.get_interface_prev_state_by_name(clean_name)
+        prev_rx = nic_prev.received_bytes if nic_prev else nic.received_bytes
+        prev_tx = nic_prev.sent_bytes if nic_prev else nic.sent_bytes
+        dpg.set_value(self.info_rx_tag, format_speed(nic.received_bytes - prev_rx, 8))
+        dpg.set_value(self.info_tx_tag, format_speed(nic.sent_bytes - prev_tx, 8))
+        """
+
 
         # Обновляем детали для выбранного интерфейса
         selected_display = dpg.get_value(self.nic_listbox_tag)
@@ -284,7 +310,7 @@ class IPTab(BaseTab):
                 else:
                     dpg.configure_item(self.popup_enable, show=False)
                     dpg.configure_item(self.popup_disable, show=True)
-
+        """
     def _update_details_for_interface(self, interface_name):
         """Обновляет нижнюю панель для указанного интерфейса"""
         nic = self.model.get_interface_by_name(interface_name)
