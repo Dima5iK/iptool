@@ -60,10 +60,10 @@ class NetworkState:
             self.interfaces_previous_state = self.interfaces
             self.interfaces = {nic.name: nic for nic in new_data}
 
-    def get_all_interfaces(self) -> list[NIC]:
-        """Возвращает список всех интерфейсов """
+    def get_listed_interfaces(self,interface_dict:dict) -> list[NIC]:
+        """Возвращает список всех интерфейсов для словаря"""
         with self._lock:
-            return list(self.interfaces.values())
+            return list(interface_dict.values())
         
     def get_interface_by_name(self, name: str) -> NIC | None:
         """Возвращает интерфейс по указанному имени"""
@@ -86,8 +86,7 @@ class NetworkState:
         return []
     
     def config_changed(self,prev_nic_state:NIC, curr_nic_state:NIC):
-        """Возвращает True, если изменились поля, влияющие на отображение конфигурации
-        """
+        """Возвращает True, если изменились поля, влияющие на отображение конфигурации"""
         if prev_nic_state is None:
             return True
         return (prev_nic_state.ip_addresses != curr_nic_state.ip_addresses or
@@ -95,5 +94,38 @@ class NetworkState:
                 prev_nic_state.speed != curr_nic_state.speed or
                 prev_nic_state.description != curr_nic_state.description or
                 prev_nic_state.mac != curr_nic_state.mac)
-
     
+    def _is_interfaces_changed(self) -> bool:
+        """True если изменился список интерфейсов или состояние интерфейсов UP/DOWN/DISABLE"""
+        actual_state  = self.get_listed_interfaces(self.interfaces)
+        past_state = self.get_listed_interfaces(self.interfaces_previous_state)
+        #если списки разные
+        if len(actual_state) != len(past_state):
+            return True
+        
+        #перебор, если элементы списков или состояние интерфейсов поменялись
+        for index in range(len(past_state)):
+            if (actual_state[index].name != past_state[index].name or actual_state[index].status != past_state[index].status or actual_state[index].mac != past_state[index].mac):
+                return True
+            
+        return False
+
+    def _is_ip_changed(self,iface_name:str) -> bool:
+        """True - если список айпи изменился"""
+        if iface_name:
+            actual_state:NIC = self.get_interface_by_name(iface_name)
+            past_state:NIC = self.get_interface_prev_state_by_name(iface_name)
+            if past_state:
+                if (actual_state.ip_addresses != past_state.ip_addresses):
+                    return True
+        return False
+
+    def _is_interface_speed_changed(self,iface_name:str) -> bool:
+        """Truee - если скорость изменилась"""
+        if iface_name:
+            actual_state:NIC = self.get_interface_by_name(iface_name)
+            past_state:NIC = self.get_interface_prev_state_by_name(iface_name)
+            if past_state:
+                if(actual_state.speed != past_state.speed):
+                    return True
+        return False

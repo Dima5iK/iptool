@@ -3,9 +3,10 @@ import dearpygui.dearpygui as dpg
 from const import UI_CONF
 from .base_tab import BaseTab
 from ..helpers import format_speed, format_interface_status
-
+from model import NetworkState, NIC
+from logic import NetworkController
 class IPTab(BaseTab):
-    def __init__(self, model, controller, focus_manager, parent_tag):
+    def __init__(self, model:NetworkState, controller:NetworkController, focus_manager, parent_tag):
         super().__init__(model, controller, focus_manager, parent_tag)
         self.conf = UI_CONF()
         # теги элементов
@@ -47,6 +48,12 @@ class IPTab(BaseTab):
                     num_items=self.conf.item_num,
                     width=int(self.conf.main_width * self.conf.IP_listbox_scale)
                 )
+                with dpg.item_handler_registry(tag="listbox_click_handler"):
+                    dpg.add_item_clicked_handler(callback=self._lmb_click_callback, button=0)
+                    dpg.add_item_clicked_handler(button=1, callback=self._show_popup_callback)
+                print("Registry exists:", dpg.does_item_exist("listbox_click_handler"))
+                dpg.bind_item_handler_registry(self.nic_listbox_tag, "listbox_click_handler")
+                dpg.bind_item_handler_registry(self.ip_listbox_tag, "listbox_click_handler")
 
             # Вторая строка: описание и MAC
             with dpg.group(horizontal=True):
@@ -142,6 +149,36 @@ class IPTab(BaseTab):
                 return self._remove_ip()
 
         return False
+
+    def _lmb_click_callback(self, sender, app_data):
+        """Обработка ЛКМ – переключение фокуса и обновление деталей"""
+        # app_data[1] – тег элемента, по которому кликнули
+        clicked_tag = dpg.get_item_alias(app_data[1])
+
+        if clicked_tag == self.nic_listbox_tag:
+            # Клик по списку интерфейсов
+            # Если фокус был на списке IP, переключаем его на интерфейсы
+            focused = self.focus_manager.get_focused_element()
+            if focused != self.nic_listbox_tag:
+                self.focus_manager.set_focus(self.nic_listbox_tag)
+            # Обновляем детали для выбранного интерфейса
+            selected = dpg.get_value(self.nic_listbox_tag)
+            if selected:
+                clean_name = selected[2:]  # убираем символ состояния
+                self._update_details_for_interface(clean_name)
+
+        elif clicked_tag == self.ip_listbox_tag:
+            # Клик по списку IP
+            if self.focus_manager.get_focused_element() != self.ip_listbox_tag:
+                self.focus_manager.set_focus(self.ip_listbox_tag)
+            # Здесь можно добавить логику, если нужно что-то сделать при клике на IP
+            pass
+
+    def _show_popup_callback(self, sender, app_data, user_data):
+        """Обработка ПКМ – показ контекстного меню"""
+        clicked_tag = dpg.get_item_alias(app_data[1])
+        if clicked_tag == self.nic_listbox_tag:
+            dpg.configure_item(self.popup_tag, show=True)
 
     def _vertical_move(self, direction):
         """Перемещение внутри активного списка"""
@@ -256,34 +293,49 @@ class IPTab(BaseTab):
     # ---------- Обновление отображения ----------
     def update_display(self):
         """Обновляет все элементы данными из модели"""
-        interfaces = self.model.get_all_interfaces()
+        #если список интерфейсов пуст ничего не длелаем
+        interfaces = self.model.get_listed_interfaces(self.model.interfaces)
         if not interfaces:
             return
-
+        
+        if self.model._is_interfaces_changed():
         # Обновляем список интерфейсов
-        display_names = []
-        for nic in interfaces:
-            symbol = format_interface_status(nic.status)
-            display_names.append(f"{symbol} {nic.name}")
-        dpg.configure_item(self.nic_listbox_tag, items=display_names)
-        dpg.set_item_user_data(self.nic_listbox_tag, display_names)
+            display_names = []
+            nic:NIC
+            for nic in interfaces:
+                symbol = format_interface_status(nic.status)
+                display_names.append(f"{symbol} {nic.name}")
+            dpg.configure_item(self.nic_listbox_tag, items=display_names)
+            dpg.set_item_user_data(self.nic_listbox_tag, display_names)
 
-        # Обновляем детали для выбранного интерфейса
+        # Обновляем список айпи адресов
         selected_display = dpg.get_value(self.nic_listbox_tag)
-        if selected_display and isinstance(selected_display, str):
-            clean_name = selected_display[2:]
-            self._update_details_for_interface(clean_name)
+        clean_name = selected_display[2:]
+        nic = self.model.get_interface_by_name(clean_name)
+        if self.model._is_ip_changed(clean_name):
+            ip_list = nic.ip_addresses.copy()
+            ip_list.append("+")
+            dpg.configure_item(self.ip_listbox_tag, items=ip_list)
+            dpg.set_item_user_data(self.ip_listbox_tag, ip_list)
+        
+        # Обновляем данные скорости
+        if self.model._is_interface_speed_changed(clean_name):
+            dpg.set_value(self.info_speed_tag, format_speed(nic.speed, 1))
 
-            # Обновляем пункты контекстного меню
-            nic = self.model.get_interface_by_name(clean_name)
-            if nic:
-                self.enable_option = nic.status
-                if nic.status in ("Disabled", "Not Present"):
-                    dpg.configure_item(self.popup_enable, show=True)
-                    dpg.configure_item(self.popup_disable, show=False)
-                else:
-                    dpg.configure_item(self.popup_enable, show=False)
-                    dpg.configure_item(self.popup_disable, show=True)
+        nic_prev = self.model.get_interface_prev_state_by_name(clean_name)
+        prev_rx = nic_prev.received_bytes if nic_prev else nic.received_bytes
+        prev_tx = nic_prev.sent_bytes if nic_prev else nic.sent_bytes
+        dpg.set_value(self.info_rx_tag, format_speed(nic.received_bytes - prev_rx, 8))
+        dpg.set_value(self.info_tx_tag, format_speed(nic.sent_bytes - prev_tx, 8))
+
+
+        if nic:
+            if nic.status in ("Disabled", "Not Present"):
+                dpg.configure_item(self.popup_enable, show=True)
+                dpg.configure_item(self.popup_disable, show=False)
+            else:
+                dpg.configure_item(self.popup_enable, show=False)
+                dpg.configure_item(self.popup_disable, show=True)
 
     def _update_details_for_interface(self, interface_name:str):
         """Обновляет нижнюю панель для указанного интерфейса"""

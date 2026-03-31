@@ -1,9 +1,11 @@
 # base_tab.py
 from abc import ABC, abstractmethod
-
+from model import NetworkState
+from logic import NetworkController
+from ..focus_manager import FocusManager
 class BaseTab(ABC):
     """Абстрактный базовый класс для всех вкладок"""
-    def __init__(self, model, controller, focus_manager, parent_tag):
+    def __init__(self, model:NetworkState, controller:NetworkController, focus_manager:FocusManager, parent_tag):
         self.model = model
         self.controller = controller
         self.focus_manager = focus_manager

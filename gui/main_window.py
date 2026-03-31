@@ -16,6 +16,7 @@ class MainWindow:
         self._setup_dpg()
         self._create_fonts()
         self._create_window()
+
         self._create_tabs()
         self._register_handlers()
 
@@ -42,6 +43,7 @@ class MainWindow:
     def _create_window(self):
         with dpg.window(label="", tag="main_window",
                         width=self.conf.main_width, height=self.conf.main_height):
+            self._create_hlp()
             # Таб-бар
             self.tab_bar = dpg.add_tab_bar(tag="main_tab_bar")
 
@@ -66,12 +68,21 @@ class MainWindow:
         # В текущем дизайне подсказка относится к вкладке IP, поэтому перенесём её в IPTab.build()
         # Для простоты оставим здесь, но лучше перенести в IPTab.
         # (Код подсказки из gui.py можно добавить в IPTab.build)
+    
+    def _create_hlp(self):
+        """Отрисовка знака вопроса"""
+        hlp = dpg.add_text(default_value='?',tag=self.conf.help_tooltip_text_tag)
+        dpg.bind_item_font(hlp,self.bigger_font)
+        with dpg.tooltip(self.conf.help_tooltip_text_tag):
+            dpg.add_text(default_value=self.conf.help_text,tag="hlp_tooltip")
+        dpg.bind_item_font("hlp_tooltip",self.smaller_font)
+        dpg.set_item_pos(self.conf.help_tooltip_text_tag,[int(self.conf.main_width*self.conf.hlp_tooltip_scale[0]),int(self.conf.main_height*self.conf.hlp_tooltip_scale[1])])
 
     def _register_handlers(self):
         # Регистрация обработчика клавиш
         with dpg.handler_registry():
             dpg.add_key_press_handler(callback=self._key_press_callback)
-
+        
         # Регистрация обработчика ресайза
         with dpg.item_handler_registry(tag="resize_handler"):
             dpg.add_item_resize_handler(callback=self._resize_callback)
@@ -91,11 +102,13 @@ class MainWindow:
     def _resize_callback(self, sender, app_data):
         width = dpg.get_item_width("main_window")
         height = dpg.get_item_height("main_window")
+        dpg.set_item_pos(self.conf.help_tooltip_text_tag,[width*self.conf.hlp_tooltip_scale[0],height*self.conf.hlp_tooltip_scale[1]])
         for tab in self.tabs.values():
             tab.on_resize(width, height)
 
     def update_display(self):
-        """Вызывается из главного цикла при поступлении новых данных"""
+        """Обнолвяем содержимое текущей вкладки"""
+        #"""Вызывается из главного цикла при поступлении новых данных"""
         for tab in self.tabs.values():
             tab.update_display()
 
