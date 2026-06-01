@@ -371,7 +371,7 @@ class IPTab(BaseTab):
         dpg.configure_item(self.info_rx_tag, width=int(width * self.conf.info_rx_scale))
         dpg.configure_item(self.info_tx_tag, width=int(width * self.conf.info_tx_scale))
 
-        # Вычисляем количество элементов в listbox в зависимости от высоты
+        # Вычисляем количество элементов в listbox в зависимости от высотыn
         # (логика из resize_callback)
 
         match ((height - 140) // 10):
