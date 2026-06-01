@@ -374,7 +374,7 @@ class IPTab(BaseTab):
         # Вычисляем количество элементов в listbox в зависимости от высоты
         # (логика из resize_callback)
 
-        match ((height - 165) // 10):
+        match ((height - 140) // 10):
 
             case 10:
                 dpg.configure_item(self.nic_listbox_tag, num_items=4)
