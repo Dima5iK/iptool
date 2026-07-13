@@ -4,6 +4,9 @@
 from const import POWERSHELL_SCAN
 import subprocess, threading,json
 from model import NIC
+import time
+import re
+from model import Route
 
 def compare_states(prev_state:dict,curr_state:dict) -> bool:
     """Сравниваем прошлое состояние модели и текущее\n
@@ -168,3 +171,93 @@ class NetworkController:
     def disable_interface(self,interface_name:str):
         cmd = ('netsh interface set interface "{}" admin=disable'.format(interface_name))
         self.cmd_execute(cmd)
+
+
+class RouteMonitor:
+    def __init__(self, model, interval: int = 5):
+        self.model = model
+        self.interval = interval
+        self.running = False
+        self.thread = None
+        self.lock = threading.Lock()
+        self.new_data_flag = False          # флаг, что маршруты обновились
+
+    def start(self):
+        if self.running:
+            return
+        self.running = True
+        self.thread = threading.Thread(target=self._update_loop, daemon=True)
+        self.thread.start()
+
+    def stop(self):
+        self.running = False
+        if self.thread:
+            self.thread.join(timeout=1)
+
+    def _update_loop(self):
+        while self.running:
+            routes = self._fetch_routes()
+            if routes is not None:
+                with self.lock:
+                    self.model.routes = routes
+                    self.new_data_flag = True
+            time.sleep(self.interval)
+
+    def _fetch_routes(self):
+        """Выполняет route print -4 и возвращает список объектов Route или None при ошибке."""
+        try:
+            startupinfo = subprocess.STARTUPINFO()
+            startupinfo.dwFlags |= subprocess.STARTF_USESHOWWINDOW
+            proc = subprocess.Popen(
+                ['route', 'print', '-4'],
+                stdout=subprocess.PIPE,
+                stderr=subprocess.PIPE,
+                text=True,
+                encoding='cp866',          # кодировка консоли Windows
+                startupinfo=startupinfo
+            )
+            stdout, stderr = proc.communicate(timeout=10)
+            if proc.returncode != 0:
+                return None
+            return self._parse_route_output(stdout)
+        except Exception:
+            return None
+
+    def _parse_route_output(self, output: str) -> list[Route]:
+        """Парсит вывод route print -4 и возвращает список Route."""
+        lines = output.splitlines()
+        routes = []
+
+        # Ищем строку с заголовками (русская или английская версия)
+        header_pattern = re.compile(r'(Сетевой адрес|Network Address)')
+        data_start = None
+        for i, line in enumerate(lines):
+            if header_pattern.search(line):
+                data_start = i + 1
+                break
+
+        if data_start is None:
+            # Если не нашли заголовок, попробуем найти строку, где первое поле похоже на IP
+            # или просто начнём с первой непустой строки после "==="
+            for i, line in enumerate(lines):
+                if line.strip().startswith('==='):
+                    data_start = i + 1
+                    break
+            if data_start is None:
+                return []
+
+        # Проходим по строкам до пустой строки или до следующей разделительной линии
+        for line in lines[data_start:]:
+            line = line.strip()
+            if not line or line.startswith('==='):
+                break
+            parts = line.split()
+            # Ожидаем минимум 5 полей: dest, mask, gateway, interface, metric
+            if len(parts) >= 5:
+                dest, mask, gateway, interface, metric = parts[0], parts[1], parts[2], parts[3], parts[4]
+                routes.append(Route(dest, mask, gateway, interface, metric))
+            # Иногда строка может содержать "On-link" в качестве шлюза и интерфейс с пробелом?
+            # В таком случае split всё равно разобьёт, но может получиться больше частей.
+            # Для простоты оставляем как есть.
+
+        return routes

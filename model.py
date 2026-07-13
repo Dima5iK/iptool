@@ -33,13 +33,15 @@ class NIC:
     
 
 class Route:
-    def __init__(self, destination, mask, gateway,  metric):
-        self.destination:str = destination
-        self.mask:str = mask                # "255.255.255.0" или CIDR 24
-        self.gateway:str = gateway          # "192.168.1.1" или "On-link"
-        self.metric:str = metric
+    def __init__(self, destination: str, mask: str, gateway: str, interface: str, metric: str):
+        self.destination = destination
+        self.mask = mask
+        self.gateway = gateway
+        self.interface = interface
+        self.metric = metric
 
-
+    def __repr__(self):
+        return f"{self.destination} {self.mask} {self.gateway} {self.interface} {self.metric}"
 
     def get_route(self) -> str:
         """возвращает полную строку destination, mask, gateway,  metric"""
