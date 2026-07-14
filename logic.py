@@ -223,41 +223,58 @@ class RouteMonitor:
         except Exception:
             return None
 
+
     def _parse_route_output(self, output: str) -> list[Route]:
-        """Парсит вывод route print -4 и возвращает список Route."""
-        lines = output.splitlines()
+        # Регулярка для строк, начинающихся с IP-адреса (четыре октета)
+        ip_pattern = re.compile(r'^(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})\s+')
         routes = []
+        persistent_section = False
 
-        # Ищем строку с заголовками (русская или английская версия)
-        header_pattern = re.compile(r'(Сетевой адрес|Network Address)')
-        data_start = None
-        for i, line in enumerate(lines):
-            if header_pattern.search(line):
-                data_start = i + 1
-                break
-
-        if data_start is None:
-            # Если не нашли заголовок, попробуем найти строку, где первое поле похоже на IP
-            # или просто начнём с первой непустой строки после "==="
-            for i, line in enumerate(lines):
-                if line.strip().startswith('==='):
-                    data_start = i + 1
-                    break
-            if data_start is None:
-                return []
-
-        # Проходим по строкам до пустой строки или до следующей разделительной линии
-        for line in lines[data_start:]:
+        for line in output.splitlines():
             line = line.strip()
-            if not line or line.startswith('==='):
-                break
+            if not line:
+                continue
+
+            # Определяем начало секции постоянных маршрутов
+            if 'Постоянные маршруты:' in line:
+                persistent_section = True
+                continue
+
+            # Пропускаем разделители и строки без IP в начале
+            if not ip_pattern.match(line):
+                continue
+
             parts = line.split()
-            # Ожидаем минимум 5 полей: dest, mask, gateway, interface, metric
-            if len(parts) >= 5:
+
+            # --- Активные маршруты (5 полей) ---
+            if not persistent_section and len(parts) >= 5:
                 dest, mask, gateway, interface, metric = parts[0], parts[1], parts[2], parts[3], parts[4]
-                routes.append(Route(dest, mask, gateway, interface, metric))
-            # Иногда строка может содержать "On-link" в качестве шлюза и интерфейс с пробелом?
-            # В таком случае split всё равно разобьёт, но может получиться больше частей.
-            # Для простоты оставляем как есть.
+                if not self._is_ignored_route(dest, mask):
+                    routes.append(Route(dest, mask, gateway, interface, metric))
+
+            # --- Постоянные маршруты (4 поля, последнее может содержать пробелы) ---
+            elif persistent_section and len(parts) >= 4:
+                dest, mask, gateway = parts[0], parts[1], parts[2]
+                # Объединяем всё, что после gateway, в одну строку (метрика)
+                metric = ' '.join(parts[3:])
+                if not self._is_ignored_route(dest, mask):
+                    routes.append(Route(dest, mask, gateway, "Persistent", metric))
 
         return routes
+    
+    def _is_ignored_route(self, dest: str, mask: str) -> bool:
+        """Возвращает True, если маршрут служебный и его нужно исключить"""
+        ignored = {
+            ("127.0.0.0", "255.0.0.0"),
+            ("127.0.0.1", "255.255.255.255"),
+            ("127.255.255.255", "255.255.255.255"),
+            ("169.254.0.0", "255.255.0.0"),
+            ("224.0.0.0", "240.0.0.0"),
+            ("255.255.255.255", "255.255.255.255"),
+        }
+        if (dest, mask) in ignored:
+            return True
+        # Дополнительно отсеиваем /32 адреса из 169.254.0.0/16
+        if dest.startswith("169.254.") and mask == "255.255.255.255":
+            return True
+        return False

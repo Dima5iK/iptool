@@ -1,5 +1,4 @@
 # route_tab.py
-# route_tab.py
 import dearpygui.dearpygui as dpg
 from .base_tab import BaseTab
 
@@ -11,8 +10,8 @@ class RouteTab(BaseTab):
     def build(self):
         with dpg.group(parent=self.parent_tag):
             # Кнопка ручного обновления (опционально)
-            dpg.add_button(label="Обновить маршруты", callback=self._manual_refresh)
-            dpg.add_spacer(height=10)
+            #dpg.add_button(label="Обновить маршруты", callback=self._manual_refresh)
+            #dpg.add_spacer(height=10)
             # Таблица для маршрутов
             with dpg.table(tag=self.table_tag, header_row=True, resizable=True, 
                            policy=dpg.mvTable_SizingStretchProp, 
@@ -48,7 +47,7 @@ class RouteTab(BaseTab):
         # Добавляем строки
         for r in routes:
             with dpg.table_row(parent=self.table_tag):
-                dpg.add_text(r.destination)
+                dpg.add_selectable(label = r.destination, span_columns= True,default_value= False)
                 dpg.add_text(r.mask)
                 dpg.add_text(r.gateway)
                 dpg.add_text(r.interface)
