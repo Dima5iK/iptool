@@ -6,8 +6,8 @@ from ..helpers import format_speed, format_interface_status
 from model import NetworkState, NIC
 from logic import NetworkController
 class IPTab(BaseTab):
-    def __init__(self, model:NetworkState, controller:NetworkController, focus_manager, parent_tag):
-        super().__init__(model, controller, focus_manager, parent_tag)
+    def __init__(self, model:NetworkState, controller:NetworkController, focus_manager, parent_tag,font = None):
+        super().__init__(model, controller, focus_manager, parent_tag,font)
         self.conf = UI_CONF()
         # теги элементов
         self.nic_listbox_tag = "nic_listbox"

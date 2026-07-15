@@ -3,8 +3,8 @@ import dearpygui.dearpygui as dpg
 from .base_tab import BaseTab
 
 class RouteTab(BaseTab):
-    def __init__(self, model, controller, focus_manager, parent_tag):
-        super().__init__(model, controller, focus_manager, parent_tag)
+    def __init__(self, model, controller, focus_manager, parent_tag,font = None):
+        super().__init__(model, controller, focus_manager, parent_tag,font)
         self.table_tag = "route_table"
 
     def build(self):
@@ -23,6 +23,7 @@ class RouteTab(BaseTab):
                 dpg.add_table_column(label="Интерфейс")
                 dpg.add_table_column(label="Метрика")
             # Можно добавить placeholder
+                dpg.bind_item_font(self.table_tag,self.font)
             self._update_table([])
 
     def _manual_refresh(self):

@@ -56,7 +56,7 @@ class MainWindow:
 
         # Вкладка Route
         with dpg.tab(label="Route", parent=self.tab_bar, tag="route_tab"):
-            route_tab = RouteTab(self.model, self.controller, self.focus_manager, "route_tab")
+            route_tab = RouteTab(self.model, self.controller, self.focus_manager, "route_tab", font= self.smaller_font)
             route_tab.build()
             self.tabs["route_tab"] = route_tab
 

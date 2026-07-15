@@ -5,12 +5,13 @@ from logic import NetworkController
 from ..focus_manager import FocusManager
 class BaseTab(ABC):
     """Абстрактный базовый класс для всех вкладок"""
-    def __init__(self, model:NetworkState, controller:NetworkController, focus_manager:FocusManager, parent_tag):
+    def __init__(self, model:NetworkState, controller:NetworkController, focus_manager:FocusManager, parent_tag, font = None):
         self.model = model
         self.controller = controller
         self.focus_manager = focus_manager
         self.parent_tag = parent_tag   # тег родительского элемента (tab)
         self.tag = None                # тег корневой группы вкладки (если нужно)
+        self.font = font
 
     @abstractmethod
     def build(self):
