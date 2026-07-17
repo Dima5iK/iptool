@@ -60,6 +60,8 @@ class MainWindow:
             route_tab.build()
             self.tabs["route_tab"] = route_tab
 
+        #with dpg.tab(label="Настройки адаптеров", parent=self.tab_bar, tag="settings_tab"):
+        #    settings_tab = 
         # Устанавливаем начальную активную вкладку
         self.active_tab_tag = "ip_tab"
         dpg.set_value("main_tab_bar", "ip_tab")

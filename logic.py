@@ -3,7 +3,7 @@
 
 from const import POWERSHELL_SCAN
 import subprocess, threading,json
-from model import NIC
+from model import NIC, Route
 import time
 import re
 from model import Route
@@ -76,9 +76,9 @@ class PowerShellMonitor:
             startupinfo=startupinfo
         )
         # Запускаем поток чтения
-        threading.Thread(target=self._reader, daemon=True).start()
+        threading.Thread(target=self._iface_reader, daemon=True).start()
 
-    def _reader(self):
+    def _iface_reader(self):
         """Читает вывод PowerShell в фоновом потоке"""
         while self.running and self.proc.poll() is None:
 
@@ -181,12 +181,12 @@ class RouteMonitor:
         self.thread = None
         self.lock = threading.Lock()
         self.new_data_flag = False          # флаг, что маршруты обновились
-
+        self.new_data:list[Route] = []
     def start(self):
         if self.running:
             return
         self.running = True
-        self.thread = threading.Thread(target=self._update_loop, daemon=True)
+        self.thread = threading.Thread(target=self._route_reader, daemon=True)
         self.thread.start()
 
     def stop(self):
@@ -194,12 +194,13 @@ class RouteMonitor:
         if self.thread:
             self.thread.join(timeout=1)
 
-    def _update_loop(self):
+    def _route_reader(self):
         while self.running:
             routes = self._fetch_routes()
             if routes is not None:
                 with self.lock:
-                    self.model.routes = routes
+                    self.new_data = routes
+                    #self.model.routes = routes
                     self.new_data_flag = True
             time.sleep(self.interval)
 

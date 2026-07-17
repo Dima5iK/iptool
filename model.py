@@ -53,7 +53,8 @@ class NetworkState:
     def __init__(self):
         self.interfaces = {}
         self.interfaces_previous_state = {}
-        self.route:list[Route] = []
+        self.routes:list[Route] = []
+        self.routes_previous_state:list[Route] = []
         self._lock = threading.RLock()
 
     def update_interfaces(self,new_data:list[NIC]):
@@ -123,7 +124,7 @@ class NetworkState:
         return False
 
     def _is_interface_speed_changed(self,iface_name:str) -> bool:
-        """Truee - если скорость изменилась"""
+        """True - если скорость изменилась"""
         if iface_name:
             actual_state:NIC = self.get_interface_by_name(iface_name)
             past_state:NIC = self.get_interface_prev_state_by_name(iface_name)
@@ -131,3 +132,16 @@ class NetworkState:
                 if(actual_state.speed != past_state.speed):
                     return True
         return False
+    
+    def _is_routes_changed(self) -> bool:
+        """True - если список маршрутов изменился\n
+        пока не работает"""
+        
+        if self.routes_previous_state:
+        # Преобразуем списки маршрутов в наборы кортежей (по значимым полям)
+            def routes_key(routes):
+                return { (r.destination, r.mask, r.gateway, r.interface, r.metric) for r in routes }
+            if routes_key(self.routes) != routes_key(self.routes_previous_state):
+                self.routes_previous_state = self.routes
+                return True
+            return False
