@@ -8,16 +8,28 @@ import time
 import re
 from model import Route
 
-def compare_states(prev_state:dict,curr_state:dict) -> bool:
-    """Сравниваем прошлое состояние модели и текущее\n
-        true - состояние изменилось\n
-        false - состояние не изменилось"""
+def compare_states(prev_state: dict, curr_state: dict) -> bool:
+    """Возвращает True, если состояние изменилось (набор имён или любые значимые поля)"""
+    # Проверяем набор ключей
+    if set(prev_state.keys()) != set(curr_state.keys()):
+        return True
 
-    if prev_state.keys() & curr_state.keys() == curr_state.keys():
-        return False
-    else:
-        return(True)
-    pass
+    # Для каждого интерфейса сравниваем значимые поля
+    for name, curr_nic in curr_state.items():
+        prev_nic = prev_state.get(name)
+        if prev_nic is None:
+            return True  # такого не должно быть, но на всякий случай
+        # Сравниваем поля (можно добавить и другие)
+        if (curr_nic.ip_addresses != prev_nic.ip_addresses or
+            curr_nic.status != prev_nic.status or
+            curr_nic.speed != prev_nic.speed or
+            curr_nic.description != prev_nic.description or
+            curr_nic.mac != prev_nic.mac or
+            curr_nic.received_bytes != prev_nic.received_bytes or
+            curr_nic.sent_bytes != prev_nic.sent_bytes):
+            return True
+
+    return False
 
 class PowerShellMonitor:
     """Класс создает и запускает процесс с источником данных"""

@@ -32,8 +32,8 @@ def main():
             network_model.routes = route_monitor.new_data
             route_monitor.new_data_flag = False
             # Можно обновить только вкладку Route, но для простоты вызываем общее обновление
-            #if network_model._is_routes_changed():
-            ui.update_display()
+            if network_model._is_routes_changed():
+                ui.update_display()
 
         dpg.render_dearpygui_frame()
         time.sleep(frame_time)

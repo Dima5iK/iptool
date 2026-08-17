@@ -51,7 +51,7 @@ class IPTab(BaseTab):
                 with dpg.item_handler_registry(tag="listbox_click_handler"):
                     dpg.add_item_clicked_handler(callback=self._lmb_click_callback, button=0)
                     dpg.add_item_clicked_handler(button=1, callback=self._show_popup_callback)
-                print("Registry exists:", dpg.does_item_exist("listbox_click_handler"))
+                #print("Registry exists:", dpg.does_item_exist("listbox_click_handler"))
                 dpg.bind_item_handler_registry(self.nic_listbox_tag, "listbox_click_handler")
                 dpg.bind_item_handler_registry(self.ip_listbox_tag, "listbox_click_handler")
 
@@ -95,8 +95,8 @@ class IPTab(BaseTab):
     def handle_key(self, key):
         """Возвращает True, если клавиша обработана"""
         focused = self.focus_manager.get_focused_element()
-        print("ip_tab.key:", key)
-        print("ip_tab.focused:",focused)
+        #print("ip_tab.key:", key)
+        #print("ip_tab.focused:",focused)
         if not focused:
             return False
 

@@ -107,9 +107,11 @@ class NetworkState:
             return True
         
         #перебор, если элементы списков или состояние интерфейсов поменялись
-        for index in range(len(past_state)):
-            if (actual_state[index].name != past_state[index].name or actual_state[index].status != past_state[index].status or actual_state[index].mac != past_state[index].mac):
-                return True
+        else:
+            for index in range(len(past_state)):
+                if (actual_state[index].name != past_state[index].name or actual_state[index].status != past_state[index].status or actual_state[index].mac != past_state[index].mac):
+                    return True
+                
             
         return False
 
@@ -144,4 +146,8 @@ class NetworkState:
             if routes_key(self.routes) != routes_key(self.routes_previous_state):
                 self.routes_previous_state = self.routes
                 return True
+            self.routes_previous_state = self.routes
             return False
+        else:
+            self.routes_previous_state = self.routes
+            return True

@@ -81,3 +81,5 @@ Write-Output $result
 '''
 scan_interval = 1
 POWERSHELL_SCAN = POWERSHELL_SCAN_TEMPLATE.format(interval = scan_interval)
+
+rote_scan_interval = 10
