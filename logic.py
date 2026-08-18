@@ -24,9 +24,9 @@ def compare_states(prev_state: dict, curr_state: dict) -> bool:
             curr_nic.status != prev_nic.status or
             curr_nic.speed != prev_nic.speed or
             curr_nic.description != prev_nic.description or
-            curr_nic.mac != prev_nic.mac or
-            curr_nic.received_bytes != prev_nic.received_bytes or
-            curr_nic.sent_bytes != prev_nic.sent_bytes):
+            curr_nic.mac != prev_nic.mac):
+            #curr_nic.received_bytes != prev_nic.received_bytes or
+            #curr_nic.sent_bytes != prev_nic.sent_bytes):
             return True
 
     return False
