@@ -27,7 +27,11 @@ class BaseTab(ABC):
     def handle_key(self, key):
         """Обрабатывает нажатие клавиши. Возвращает True, если клавиша обработана."""
         return False
-
+    
+    def set_initial_focus(self):
+        """Устанавливает фокус на первый элемент вкладки (по умолчанию ничего)"""
+        pass
+    
     def on_resize(self, width, height):
         """Вызывается при изменении размеров главного окна"""
         pass

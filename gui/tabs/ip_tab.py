@@ -209,6 +209,10 @@ class IPTab(BaseTab):
 
         return True
 
+    def set_initial_focus(self):
+        self.focus_manager.set_focus(self.nic_listbox_tag)
+        #print("фокус на интерфейсах")
+
     # ---------- Ввод/удаление IP ----------
     def _write_del_symb(self, symb, action):
         """action: +1 добавить символ, -1 удалить последний"""

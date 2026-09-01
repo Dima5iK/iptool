@@ -45,7 +45,7 @@ class MainWindow:
                         width=self.conf.main_width, height=self.conf.main_height):
             self._create_hlp()
             # Таб-бар
-            self.tab_bar = dpg.add_tab_bar(tag="main_tab_bar")
+            self.tab_bar = dpg.add_tab_bar(tag="main_tab_bar",callback=self._tab_changed)
 
     def _create_tabs(self):
         # Вкладка IP
@@ -84,6 +84,7 @@ class MainWindow:
         # Регистрация обработчика клавиш
         with dpg.handler_registry():
             dpg.add_key_press_handler(callback=self._key_press_callback)
+            
         
         # Регистрация обработчика ресайза
         with dpg.item_handler_registry(tag="resize_handler"):
@@ -95,6 +96,7 @@ class MainWindow:
         active_tab_tag = dpg.get_value("main_tab_bar")
         if isinstance(active_tab_tag, int):
             active_tab_tag = dpg.get_item_alias(active_tab_tag)
+            print()
 
         tab = self.tabs.get(active_tab_tag)
         if tab:
@@ -107,6 +109,16 @@ class MainWindow:
         dpg.set_item_pos(self.conf.help_tooltip_text_tag,[width*self.conf.hlp_tooltip_scale[0],height*self.conf.hlp_tooltip_scale[1]])
         for tab in self.tabs.values():
             tab.on_resize(width, height)
+
+    def _tab_changed(self, sender, app_data):
+        "app_data – это тег активной вкладки (может быть числом)"
+        if isinstance(app_data, int):
+            active_tab_tag = dpg.get_item_alias(app_data)
+        else:
+            active_tab_tag = app_data
+        tab = self.tabs.get(active_tab_tag)
+        if tab and hasattr(tab, 'set_initial_focus'):
+            tab.set_initial_focus()     
 
     def update_display(self):
         """Обнолвяем содержимое текущей вкладки"""
